@@ -1,0 +1,12 @@
+
+def fromlist(somelist,numsamples,sizeofsamples):
+    """this generates a random set of samples from a list"""
+    samples=[]
+    import random
+    import pandas
+    for x in xrange(numsamples):
+        samples.append(random.sample(somelist.columns,sizeofsamples))
+    return samples
+        #print random.sample(somelist,sizeofsamples)
+    #return samples.append(x)
+    
