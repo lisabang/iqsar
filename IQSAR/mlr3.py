@@ -1,5 +1,7 @@
+import numpy as np
+from sklearn import cross_validation
 def mlr(x_of_trainingset,y_actual):
-    import numpy as np
+    
     columnnames=list(x_of_trainingset.columns.values)
     npones=np.ones(len(y_actual), float)
 #    selectedcolumns=deque(columnnames[0:5])
@@ -32,8 +34,7 @@ def mlrr(x_of_trainingset,y_actual):
 def kfoldmlr(xi,yi,nfolds):
     x=xi.values
     y=yi.values
-    import numpy as np
-    from sklearn import cross_validation
+    
     kf = cross_validation.KFold(len(y), n_folds=nfolds)#indices=None, shuffle=False, random_state=None)
     y_hats=[]
     for train_index, test_index in kf:
@@ -51,7 +52,7 @@ def kfoldmlr(xi,yi,nfolds):
         #print x_test
         yhat=coefficients[-1]
  
-        for index in arange(x_test.size):
+        for index in range(x_test.size):
 #            print x_test[0][index]
 #            print coef
             slopetimesx=x_test[0][index]*coefficients[index]

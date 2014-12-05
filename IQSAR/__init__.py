@@ -3,6 +3,8 @@ import mlr
 import training
 import calculate
 import tabu
-import GAinitpop
+import GAprac
 import graph
 import mlr3
+import filter
+import calculate2

@@ -96,21 +96,35 @@ def q2loo_lr(x,y):
     TSS=sum((y-np.mean(y))**2)
     r2cv=1-(PRESS/TSS)
     return r2cv
+    
+def stentropy(x):
+    lv=list(x)
+    Hi=0.0
+    for i in set(lv):
+        #Hi=Hi+float(lv.count(i))/float(len(lv))
+        
+        Hi=Hi+float(lv.count(i)/float(len(lv)))*np.log(float(lv.count(i)/float(len(lv))))
+    Hi=(-1*Hi)/math.log(float(len(lv)),2)
+    return float(Hi)
 
 def summarizedesc(dataframe,y):
     '''this will take 1-5 minutes depencing on dataframe size'''
-    asdf=pd.DataFrame(columns=["kurtosis", "r2","q2"], index=dataframe.columns)
-    kurtosisadd=[float(scst.kurtosis(dataframe[x])) for x in dataframe[dataframe.columns]]
+    asdf=pd.DataFrame(columns=["kurtosis","entropy", "r2","q2"], index=dataframe.columns)
+    kurtosisadd=[float(scst.kurtosis(dataframe[a])) for a in dataframe[dataframe.columns]]
     r2add=[]
     q2add=[] 
+    entropyadd=[stentropy(dataframe[a]) for a in dataframe[dataframe.columns]]
     for column in dataframe:
         x=dataframe[column]
         r2add.append(r2(x,y))
         q2add.append(q2loo_lr(x,y))
-
+        #entropyadd.append(float(stentropy(x)))
+        
     asdf["kurtosis"]=kurtosisadd
+    asdf["entropy"]=entropyadd
     asdf["r2"]=r2add
     asdf["q2"]=q2add
+
     return asdf
 import matplotlib.pyplot as plt
 def expl_graph(x,y):
@@ -127,6 +141,4 @@ def expl_graph(x,y):
     #ax.title(str(x.name)+" vs. "+str(y.name))
     ax.figure.show()
     print "r2: "+str(r2(x,y))
-    
-
 
