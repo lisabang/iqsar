@@ -141,4 +141,29 @@ def expl_graph(x,y):
     #ax.title(str(x.name)+" vs. "+str(y.name))
     ax.figure.show()
     print "r2: "+str(r2(x,y))
+class scmat():
+    def __init__(self, sodf):
+
+        self.sodf=sodf.copy()
+
+        seldescs = widgets.SelectMultiple(options=list(self.sodf.columns),description='Selected Descriptors:',)
+        display(seldescs)
+        def chandler(val): 
+            dfsels=pd.DataFrame(sodf[list(val)])
+            return pd.scatter_matrix(dfsels, alpha=0.2, diagonal='hist')
+
+        
+
+        button = widgets.ButtonWidget(description="Get scatter matrix")
+        display(button)
+        def on_button_clicked(b):
+            return chandler(list(seldescs.value))
+        
+        button.on_click(on_button_clicked)
+   
+
+    
+   
+
+#seldescs.on_trait_change(chelseahandler, 'value')
 

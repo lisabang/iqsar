@@ -4,8 +4,6 @@ def mlr(x_of_trainingset,y_actual):
     
     columnnames=list(x_of_trainingset.columns.values)
     npones=np.ones(len(y_actual), float)
-#    selectedcolumns=deque(columnnames[0:5])
-#    A_sl=x_of_trainingset.as_matrix(columns=(selectedcolumns))
     A_sl=x_of_trainingset.as_matrix()
     A=np.column_stack([A_sl,npones])
     lstsq,residuals,rank,something=np.linalg.lstsq(A, y_actual)
@@ -40,43 +38,38 @@ def kfoldmlr(xi,yi,nfolds):
     for train_index, test_index in kf:
         x_train, x_test = x[train_index], x[test_index]
         y_train=y[train_index]
-
-        x_train=x_train#[np.logical_not(np.isnan(x_train))]
-        y_train=y_train#[np.logical_not(np.isnan(y_train))]
-
-        #poly_order = 1
-        #ab = np.polyfit(x_train, y_train, poly_order)
         coefficients=mlrr(x_train,y_train)
-        #print coefficients
-    #print coefficients
-        #print x_test
+        #x_train=x_train
+        #y_train=y_train
         yhat=coefficients[-1]
  
         for index in range(x_test.size):
-#            print x_test[0][index]
-#            print coef
             slopetimesx=x_test[0][index]*coefficients[index]
             yhat=yhat+slopetimesx
-        y_hats.append(yhat)
+        y_hats.append(float(yhat))
         
-        #for index in arange(len(x_test)):
-        #    slopetimesx=x_test[index]*coefficients[index]
-        #    yhat=yhat+slopetimesx
-        #print yhats
-    
-    
-        
-        #ab=fit(x_train,y_train)[::-1]
-        #y_hats.append(np.polyval(ab, x_test))
-    cleanyhats=[]
-    for e in y_hats:
-        cleanyhats.append(float(e))
-    stack=np.asarray(cleanyhats)
+    #cleanyhats=[]
+    #for e in y_hats:
+    #    cleanyhats.append(float(e))
+    stack=np.asarray(y_hats)
     return stack
 def q2loo_mlr(x,y):
     '''calculates q2loo of a linear regression of x and y where both x and y are 1-d'''
     yhats=kfoldmlr(x,y,len(x))
-    PRESS=sum((y-yhats)**2)
-    TSS=sum((y-np.mean(y))**2)
-    r2cv=1-(PRESS/TSS)
+    PRESS=np.sum((y-yhats)**2)
+    y_mean = np.mean(y)
+    TSS=np.sum((y - y_mean)**2)
+    #TSS=sum((y-np.mean(y))**2)
+    r2cv=(TSS-PRESS)*(TSS**(-1))#1-(PRESS/TSS)
     return r2cv
+def q2lmo_mlr(x,y,kfolds=5):
+    '''calculates q2loo of a linear regression of x and y where both x and y are 1-d'''
+    if type(kfolds)!=int:
+        raise TypeError
+    else:
+        yhats=kfoldmlr(x,y,kfolds)
+        PRESS=sum((y-yhats)**2)
+        TSS=sum((y-np.mean(y))**2)
+        r2cv=1-(PRESS/TSS)
+    return r2cv
+

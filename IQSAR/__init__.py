@@ -3,8 +3,8 @@ import mlr
 import training
 import calculate
 import tabu
-import GAprac
 import graph
 import mlr3
 import filter
 import calculate2
+import GA
