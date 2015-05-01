@@ -5,7 +5,7 @@ IQSAR is a project designed to enable chemoinformaticians to make reproducible Q
 
 | Dependencies:
 | ----------------------------
-| scikit-learn 0.15*
+| scikit-learn 0.15+*
 | numpy 1.8+*
 | scipy*
 | pandas*
