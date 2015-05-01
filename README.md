@@ -15,6 +15,6 @@ IQSAR is a project designed to enable chemoinformaticians to make reproducible Q
 | DEAP (if using Genetic Algorithm)
 
 
-* indicates that these packages are included in anaconda.
+asterisk (*) indicates that these packages are included in anaconda.
 
 
