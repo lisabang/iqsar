@@ -11,9 +11,8 @@ IQSAR is a project designed to enable chemoinformaticians to make reproducible Q
 | pandas*
 | ipython 3.0+*
 | matplotlib*
-| ----------------------------
-| bokeh* (if intending to use graphic interactive charts)/n
-| DEAP (if using Genetic Algorithm)/n
+| bokeh* (if intending to use graphic interactive charts)
+| DEAP (if using Genetic Algorithm)
 
 
 * indicates that these packages are included in anaconda.
