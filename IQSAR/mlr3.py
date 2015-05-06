@@ -29,6 +29,12 @@ def mlrr(x_of_trainingset,y_actual):
 
     lstsq,residuals,rank,something=np.linalg.lstsq(A, y_actual)
     return lstsq
+
+def pmlr(x_of_trainingset,y_actual):
+    npones=np.ones(len(y_actual), float)
+    A=np.column_stack([x_of_trainingset,npones])
+    lstsq=np.dot(np.linalg.pinv(A), y_actual)
+    return lstsq
 def kfoldmlr(xi,yi,nfolds):
     '''gives the y-hats for a q2LOO calculation'''
     x=xi.values
