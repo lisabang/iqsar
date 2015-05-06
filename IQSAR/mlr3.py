@@ -63,14 +63,38 @@ def q2loo_mlr(x,y):
     #TSS=sum((y-np.mean(y))**2)
     r2cv=(TSS-PRESS)*(TSS**(-1))#1-(PRESS/TSS)
     return r2cv
+def kfoldmlr2(xi,yi,nfolds):
+    x=xi.values
+    y=yi.values
+    
+    kf = cross_validation.KFold(len(y), n_folds=nfolds)#indices=None, shuffle=False, random_state=None)
+    y_hats=[]
+    y_tests=[]
+    for train_index, test_index in kf:
+        
+        x_train, x_test = x[train_index], x[test_index]
+        y_train=y[train_index]
+        coefficients=pmlr(x_train,y_train)
+        yhat=np.dot(x_test,coefficients[:-1])+coefficients[-1]
+        y_test=y[test_index]
+        y_tests.append(np.mean(y_test))
+        
+        y_hat=np.mean(yhat)
+        y_hats.append(y_hat)
+    y_tests=np.asarray(y_tests)
+    stack=np.asarray(y_hats)
+    return stack, y_tests
+
 def q2lmo_mlr(x,y,kfolds=5):
     '''calculates q2loo of a linear regression of x and y where both x and y are 1-d'''
     if type(kfolds)!=int:
         raise TypeError
     else:
-        yhats=kfoldmlr(x,y,kfolds)
-        PRESS=sum((y-yhats)**2)
-        TSS=sum((y-np.mean(y))**2)
+        yhats,ytest=kfoldmlr2(x,y,kfolds)
+        #ytest=kfoldmlr2(x,y,kfolds)[1]
+        PRESS=np.sum((ytest-yhats)**2)
+        y_mean = np.mean(ytest)
+        TSS=np.sum((ytest-y_mean)**2)
         r2cv=1-(PRESS/TSS)
     return r2cv
 
