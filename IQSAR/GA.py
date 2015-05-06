@@ -3,13 +3,17 @@ import numpy as np
 import itertools as itert
 import copy as cp
 from deap import creator, base, tools, algorithms
+import functools
 def hash_ind_list(i):
+    '''this is to allow DEAP to have something hashable when we store our populations.  See this post for more on why we use this: https://groups.google.com/forum/#!msg/deap-users/aA8DEkGLhHY/NNnCtjiE7e4J'''
     return hash(tuple(i))
+    
 randomnum=np.random.uniform(1,100,1)
 #arguments:  ngen, basetable, y, popsize, indsize, crossoverrate, #mutprob, evaluation function, selection function
 toolbox=base.Toolbox()
 class GAdescsel():
     def __init__(self,basetable,y,ngen=1000, popsize=100, indsize=5, cx=.5, mut=.05, seed=randomnum):
+        '''This is where we specify the parameters we need to set for this Genetic Algorithm run of descriptors.'''
         from deap import creator, base, tools, algorithms
         creator.create("Fitness", base.Fitness, weights=(1.0,))
         creator.create("Individual", list, fitness=creator.Fitness, __hash__=hash_ind_list)
@@ -24,12 +28,17 @@ class GAdescsel():
         self.indsize=indsize
         self.cx=cx
         self.mut=mut
-#    def randstartpop(self):
-      #  toolbox.register("genind", makeind,self.basetable, self.indsize)
-      #  toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.genind)
-      #  toolbox.register("population",tools.initRepeat, list, toolbox.individual, n=self.popsize)
-        #self.population=toolbox.population()
-    def mkeind(self,desc_in_ind=5):#,datatable):
+    def ct_calls(func):
+        @functools.wraps(func)
+        def decor(*args, **kwargs):
+            decor.count += 1
+            return func(*args, **kwargs)
+        decor.count = 0
+        return decor
+
+
+    def mkeindrand(self,desc_in_ind=5):
+        '''This makes individuals randomly WITHOUT a seed.  The seed you specified will not be used.  This was the method used to initiate populations before we started using seeds.'''
         import random
         while str(type(self.basetable)) !="<class 'pandas.core.frame.DataFrame'>":
             raise TypeError("The type of descriptor table should be a Pandas dataframe.")
@@ -40,11 +49,24 @@ class GAdescsel():
                 break
             except:
                 raise ValueError("The number of descriptors per individual should be of type int")  
-        #this is what's used to generate the start population
-        np.random.seed(seed=self.seed)
-        smple=np.random.choice(self.basetable.columns,size=desc_in_ind, replace=False)
-        #smple=random.sample(self.basetable.columns,desc_in_ind)
+        smple=random.sample(self.basetable.columns,desc_in_ind)
         return smple
+    @ct_calls
+    def mkeindseed(self,desc_in_ind=5):#, seed=self.rseed):#,datatable):
+        '''This makes individuals randomly using the seed provided.  Since we are invoking mkeind 100 times (or however large your indsize is) and we can't use the same seed each time, the seed mush be an integer and is increased by 1 each time it's run, hence the global variable.'''
+        import random
+        #np.random.seed(seed=(self.rseed)#+self.mkindseed.count))
+        from numpy.random import RandomState
+        if self.mkeindseed.count<=100:
+            prng=RandomState(self.seed+self.mkeindseed.count)
+        if self.mkeindseed.count>100:
+            prng=RandomState(self.seed+(self.mkeindseed.count%100))
+        smple=prng.choice(self.basetable.columns,size=desc_in_ind, replace=False)
+        #smple=random.sample(self.basetable.columns,desc_in_ind)
+        return list(smple)
+
+
+
     def mkeindrf(self,desc_in_ind=5):
         from sklearn import datasets
         from sklearn import metrics
@@ -88,16 +110,21 @@ class GAdescsel():
                 ind[ind.index(descriptor)]=random.choice(choices)
         return ind,
     def evalr2(self,ind):
+        '''Evaluate a given individual's fitness value as r^2.'''
         import mlr3 as m
         return m.mlr(self.basetable[ind],self.y)[2].astype(float),
     def evalr2adj(self,ind):
+        '''Evaluate a given individual's fitness value as r^2adj.'''
         import mlr3 as m
         return m.mlr(self.basetable[ind],self.y)[3].astype(float),
     def evalq2loo(self,ind):
-        #import mlr3
-#        print self.basetable[ind][1]
+        '''Evaluate a given individual's fitness value as q^2LOO.'''
         import mlr3 as m
         return m.q2loo_mlr(self.basetable[ind],self.y),
+    def evalq2lmo(self,ind,kfolds=len(self.y)/2):
+        '''Evaluate a given individual's fitness value as q^2LMO using sklearn's kfolds; the default value of the number of kfolds is half the number of molecules entered'''
+        import mlr3 as m
+        return m.q2lmo_mlr(self.basetable[ind],self.y,kfolds),
     def printq2fitness(self,pop):
         q2s=[]
         for ind in pop:
@@ -194,6 +221,7 @@ class GAdescsel():
         print toolbox.map(toolbox.evaluate, population)
         return population
     def evolve(self,evalfunc="q2loo"):
+        '''evolves a dataset according to the user's chosen evaluation function.  '''
         #toolbox.register("map", pool.map)
         toolbox.register("genind", self.mkeind,self.indsize)
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.genind)
