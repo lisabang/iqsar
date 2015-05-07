@@ -121,9 +121,10 @@ class GAdescsel():
         '''Evaluate a given individual's fitness value as q^2LOO.'''
         import mlr3 as m
         return m.q2loo_mlr(self.basetable[ind],self.y),
-    def evalq2lmo(self,ind,kfolds=len(self.y)/2):
+    def evalq2lmo(self,ind,kfolds=16):
         '''Evaluate a given individual's fitness value as q^2LMO using sklearn's kfolds; the default value of the number of kfolds is half the number of molecules entered'''
         import mlr3 as m
+        #kfolds=len(self.y)/2
         return m.q2lmo_mlr(self.basetable[ind],self.y,kfolds),
     def printq2fitness(self,pop):
         q2s=[]
@@ -228,12 +229,16 @@ class GAdescsel():
         toolbox.register("population",tools.initRepeat, list, toolbox.individual, n=self.popsize)
         if evalfunc=="q2loo":
             toolbox.register("evaluate", self.evalq2loo)
+
+        elif evalfunc=="q2lmo":
+            toolbox.register("evaluate", self.evalq2lmo)
         elif evalfunc=="r2":
             toolbox.register("evaluate", self.evalr2)
+        
         elif evalfunc=="r2adj":
             toolbox.register("evaluate", self.evalr2adj)
         else:
-            raise ValueError("not a valid evaluation function specified; use evalr2adj, evalr2, or q2loo")
+            raise ValueError("not a valid evaluation function specified; use evalr2adj, evalr2, q2lmo or q2loo")
         
         toolbox.register("mate", tools.cxOnePoint) #Uniform, indpb=0.5)
         toolbox.register("mutate", self.mutaRan)#, indpb=self.mut)
