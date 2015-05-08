@@ -173,7 +173,7 @@ class dataset():
 
         
 
-        button = widgets.ButtonWidget(description="Get scatter matrix")
+        button = widgets.Button(description="Get scatter matrix")
         display(button)
         def on_button_clicked(b):
             return chandler(list(seldescs.value))

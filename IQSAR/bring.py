@@ -1,4 +1,5 @@
 def data(n):
+    """another way to import files into pandas without specifying .txt or .csv.  IQSAR.bring.data(DIRECT_PATH_TO_YOUR_DIRECTORY_HERE)"""
     import pandas as pd
 
     if n.endswith(".csv"):

@@ -1,7 +1,7 @@
 import copy
 from pandas import *
-def desc(sumzdf,kt,et,r2t,q2t):
-    """filters out descriptors of a sumtable.  filters out kurtosis higher than 2nd arg, etnropy less than 3rd arg, r2 lower than 4th arg, and q2 lower than 5th arg"""
+def desc(sumzdf,kt=8,et=0,r2t=.1,q2t=0):
+    """filters out descriptors of a sumtable calculated from IQSAR.calculate(dataset).summarizedesc().  filters out kurtosis higher than 2nd arg, entropy less than 3rd arg, r2 lower than 4th arg, and q2 lower than 5th arg"""
     s=copy.deepcopy(sumzdf)
     s["kurtosis"]=s["kurtosis"].where(s["kurtosis"]<kt)
     s["entropy"]=s["entropy"].where(s["entropy"]>et)

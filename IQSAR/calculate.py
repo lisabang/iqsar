@@ -39,12 +39,13 @@ def fit(X, Y):
     m_Y = mean(Y)
 
     def std(Xs, m):
+        '''this is used to calculate the standard deviation'''
         normalizer = len(Xs) - 1
         return math.sqrt(sum((pow(x - m, 2) for x in Xs)) / normalizer)
     # assert np.round(Series(X).std(), 6) == np.round(std(X, m_X), 6)
 
     def pearson_r(Xs, Ys):
-
+        '''this calculates the pearson R of multiple xs and ys.'''
         sum_xy = 0
         sum_sq_v_x = 0
         sum_sq_v_y = 0
@@ -142,6 +143,7 @@ def expl_graph(x,y):
     ax.figure.show()
     print "r2: "+str(r2(x,y))
 class scmat():
+    '''this raises the IQSAR scatter matrix making option'''
     def __init__(self, sodf):
 
         self.sodf=sodf.copy()
