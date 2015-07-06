@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 class data():
     '''splits a dataset into test and training sets by one of three methods: completely random,
     by values of a given column, and by selecting interactively thru an ipynb SelectMultiple widget'''
@@ -10,8 +12,7 @@ class data():
         else:
             allrows=self.dataset.index.values
             trainrows = np.random.choice(allrows,n_training)
-            testrows= [x for x in self.dataset.index.values if x not in trainrows]
-            trainingset,testset= self.dataset.ix[trainrows],self.dataset.ix[testrows]
+            trainingset,testset= self.dataset.ix[trainrows],self.dataset.drop(trainrows)
             return trainingset, testset
     def by_col(self,columnname,traincolval):
         '''This splits the dataset according to the values of a given column.  Essentially, this is a manual technique.  For example, one may have a column "Set" which has the a value of 0 or 1 for each column.  One wants the "1"s to be in the training set.  If one uses the by_col method of IQSAR.split.data object, you would specify *.by_col("Set",1)'''
@@ -25,9 +26,7 @@ class data():
         if type(trainrows) !=list:
             raise TypeError("trainrows must be of type list")
         else:
-            train=pd.DataFrame(sodf.ix[list(trainrows)])
-            testrows= [x for x in sodf.index.values if x not in trainrows]
-            test=pd.DataFrame(sodf.ix[list(testrows)])
-            return test,train
+            train,test= self.dataset.ix[trainrows],self.dataset.drop(trainrows)
+            return train,test
 
 

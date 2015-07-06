@@ -1,22 +1,73 @@
+
 import random
 import numpy as np
 import itertools as itert
 import copy as cp
 from deap import creator, base, tools, algorithms
 import functools
-def hash_ind_list(i):
-    '''this is to allow DEAP to have something hashable when we store our populations.  See this post for more on why we use this: https://groups.google.com/forum/#!msg/deap-users/aA8DEkGLhHY/NNnCtjiE7e4J'''
-    return hash(tuple(i))
+import sys
+import signal
+import time
+import sys
+import time
+
+
+#from https://code.google.com/p/corey-projects/source/browse/trunk/python2/progress_bar.py
+class ProgressBar:
+    def __init__(self, duration,score):
+        self.duration = duration
+        #self.evalfuncscore=evalfuncscore
+        self.prog_bar = '[]'
+        self.fill_char = '#'
+        self.width = 40
+        self.score=score
+        self.__update_amount(0,0)
+
+    def animate(self):
+        for i in range(self.duration):
+            if sys.platform.lower().startswith('win'):
+                print self, '\r',
+            else:
+                print self, chr(27) + '[A'
+            self.update_time(i + 1, self.score)
+            time.sleep(1) 
+        print self
+    def update_score(self, newscore):
+        meh=' Avg score: %s' % self.score
+        return meh
+    def update_time(self, elapsed_secs,newscore):
+        self.__update_amount((elapsed_secs / float(self.duration)) * 100.0, newscore)
+        self.score=newscore
+        self.prog_bar += '  %dGEN/%sGEN' % (elapsed_secs, self.duration)
+        
+    def __update_amount(self, new_amount,newscore):
+        percent_done = int(round((new_amount / 100.0) * 100.0))
+        all_full = self.width - 2
+        num_hashes = int(round((percent_done / 100.0) * all_full))
+        self.prog_bar = '[' + self.fill_char * num_hashes + ' ' * (all_full - num_hashes) + ']'
+        #self.score=newscore
+        pct_place = (len(self.prog_bar) / 2) - len(str(percent_done))
+        pct_string = '%d%%' % percent_done
+        self.prog_bar = self.prog_bar[0:pct_place] + \
+            (pct_string + self.prog_bar[pct_place + len(pct_string):]+str(self.update_score(self.score)))
+        
+    def __str__(self):
+        return str(self.prog_bar)
+
+
     
+def hash_ind_list(i):
+    return hash(tuple(i))
 randomnum=np.random.uniform(1,100,1)
 #arguments:  ngen, basetable, y, popsize, indsize, crossoverrate, #mutprob, evaluation function, selection function
 toolbox=base.Toolbox()
 class GAdescsel():
-    def __init__(self,basetable,y,ngen=1000, popsize=100, indsize=5, cx=.5, mut=.05, seed=randomnum):
-        '''This is where we specify the parameters we need to set for this Genetic Algorithm run of descriptors.'''
+    def __init__(self,basetable,y,ngen=1000, popsize=100, indsize=5, cx=.5, mut=.05, seed="12345"):
         from deap import creator, base, tools, algorithms
         creator.create("Fitness", base.Fitness, weights=(1.0,))
+        
         creator.create("Individual", list, fitness=creator.Fitness, __hash__=hash_ind_list)
+        creator.create("Population", list, fitness=creator.Fitness, __hash__=hash_ind_list)
         #toolbox=base.Toolbox() 
         global toolbox
         #global evalq2loo
@@ -35,10 +86,7 @@ class GAdescsel():
             return func(*args, **kwargs)
         decor.count = 0
         return decor
-
-
-    def mkeindrand(self,desc_in_ind=5):
-        '''This makes individuals randomly WITHOUT a seed.  The seed you specified will not be used.  This was the method used to initiate populations before we started using seeds.'''
+    def mkeindrand(self,desc_in_ind=5):#,datatable):
         import random
         while str(type(self.basetable)) !="<class 'pandas.core.frame.DataFrame'>":
             raise TypeError("The type of descriptor table should be a Pandas dataframe.")
@@ -52,33 +100,23 @@ class GAdescsel():
         smple=random.sample(self.basetable.columns,desc_in_ind)
         return smple
     @ct_calls
-    def mkeindseed(self,desc_in_ind=5):#, seed=self.rseed):#,datatable):
-        '''This makes individuals randomly using the seed provided.  Since we are invoking mkeind 100 times (or however large your indsize is) and we can't use the same seed each time, the seed mush be an integer and is increased by 1 each time it's run, hence the global variable.'''
+    def mkeindseed(self,desc_in_ind=5):
         import random
-        #np.random.seed(seed=(self.rseed)#+self.mkindseed.count))
         from numpy.random import RandomState
         if self.mkeindseed.count<=100:
             prng=RandomState(self.seed+self.mkeindseed.count)
         if self.mkeindseed.count>100:
             prng=RandomState(self.seed+(self.mkeindseed.count%100))
         smple=prng.choice(self.basetable.columns,size=desc_in_ind, replace=False)
-        #smple=random.sample(self.basetable.columns,desc_in_ind)
         return list(smple)
-
-
-
+    
     def mkeindrf(self,desc_in_ind=5):
         from sklearn import datasets
         from sklearn import metrics
         from sklearn.ensemble import RandomForestClassifier
-        # load the iris datasets
-        # fit an Extra Trees model to the data
         model=RandomForestClassifier()
-        #model = ExtraTreesClassifier()
         model.fit(self.basetable, self.y)
-        # the relative importance of each attribute
-        rf_feats=pd.DataFrame(model.feature_importances_, index=self.basetable.columns)#!!!FITABLE!!??
-        #print rf_feats
+        rf_feats=pd.DataFrame(model.feature_importances_, index=self.basetable.columns)
         pos=rf_feats[0].to_dict()
         return list(np.random.choice(list(pos.keys()), desc_in_ind, p=list(pos.values())))
     def mkeindlogrf(self,desc_in_ind=5):
@@ -86,12 +124,9 @@ class GAdescsel():
         from sklearn import metrics
         from sklearn.ensemble import RandomForestClassifier
         import math
-        # load the iris datasets
-        # fit an Extra Trees model to the data
         model=RandomForestClassifier()
         #model = ExtraTreesClassifier()
         model.fit(self.basetable, self.y)
-        # the relative importance of each attribute
         rf_feats=pd.DataFrame(model.feature_importances_, index=self.basetable.index)#!!!FITABLE!!??
         #print rf_feats
         pos=rf_feats[0].to_dict()
@@ -110,22 +145,16 @@ class GAdescsel():
                 ind[ind.index(descriptor)]=random.choice(choices)
         return ind,
     def evalr2(self,ind):
-        '''Evaluate a given individual's fitness value as r^2.'''
         import mlr3 as m
         return m.mlr(self.basetable[ind],self.y)[2].astype(float),
     def evalr2adj(self,ind):
-        '''Evaluate a given individual's fitness value as r^2adj.'''
         import mlr3 as m
         return m.mlr(self.basetable[ind],self.y)[3].astype(float),
     def evalq2loo(self,ind):
-        '''Evaluate a given individual's fitness value as q^2LOO.'''
+        #import mlr3
+#        print self.basetable[ind][1]
         import mlr3 as m
         return m.q2loo_mlr(self.basetable[ind],self.y),
-    def evalq2lmo(self,ind,kfolds=16):
-        '''Evaluate a given individual's fitness value as q^2LMO using sklearn's kfolds; the default value of the number of kfolds is half the number of molecules entered'''
-        import mlr3 as m
-        #kfolds=len(self.y)/2
-        return m.q2lmo_mlr(self.basetable[ind],self.y,kfolds),
     def printq2fitness(self,pop):
         q2s=[]
         for ind in pop:
@@ -142,6 +171,7 @@ class GAdescsel():
         toolbox.register("mutate", self.mutaRan)#, indpb=self.mut)
         toolbox.register("select", tools.selBest)
         population=toolbox.population()
+        
         #print population
         fits=toolbox.map(toolbox.evaluate, population)
 
@@ -170,16 +200,8 @@ class GAdescsel():
             popfits = futures.map(toolbox.evaluate, population)
             avgfitnesses.append(np.mean(popfits))
         #plot(len(avgfitnesses), list(avgfitnesses))
-        print avgfitnesses
-        return population
-            #print toolbox.map(toolbox.evaluate, offspring)
-            #print ofits
-#            fits = toolbox.map(toolbox.evaluate, offspring)
-#            print fits
-            
-          #  for fit, ind in zip(ofits, offspring):
-          #      ind.fitness.values=fit
-          #      print fit
+        #print avgfitnesses
+        
     def evolvepara(self):
         #import multiprocessing
         #pool = multiprocessing.Pool()
@@ -221,68 +243,73 @@ class GAdescsel():
 #        print avgfitnesses
         print toolbox.map(toolbox.evaluate, population)
         return population
+
+
     def evolve(self,evalfunc="q2loo"):
-        '''evolves a dataset according to the user's chosen evaluation function.  '''
-        #toolbox.register("map", pool.map)
-        toolbox.register("genind", self.mkeind,self.indsize)
+     
+        toolbox.register("genind", self.mkeindseed, self.indsize)
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.genind)
         toolbox.register("population",tools.initRepeat, list, toolbox.individual, n=self.popsize)
+        
         if evalfunc=="q2loo":
             toolbox.register("evaluate", self.evalq2loo)
-
-        elif evalfunc=="q2lmo":
-            toolbox.register("evaluate", self.evalq2lmo)
         elif evalfunc=="r2":
             toolbox.register("evaluate", self.evalr2)
-        
         elif evalfunc=="r2adj":
             toolbox.register("evaluate", self.evalr2adj)
         else:
-            raise ValueError("not a valid evaluation function specified; use evalr2adj, evalr2, q2lmo or q2loo")
+            raise ValueError("not a valid evaluation function specified; use evalr2adj, evalr2, or q2loo")
         
         toolbox.register("mate", tools.cxOnePoint) #Uniform, indpb=0.5)
         toolbox.register("mutate", self.mutaRan)#, indpb=self.mut)
         toolbox.register("select", tools.selBest)
+#progress bar start!
+        #print 'Starting... # GEN FINISHED:',
 
         origpop=toolbox.population()
+        #self.mkeindseed.count=0
         population=cp.deepcopy(origpop)
-        #print population
         fits=toolbox.map(toolbox.evaluate, population)
-
         for fit, ind in zip(fits,population):
             ind.fitness.values=fit
-            #print fit, ind
-            #print fit
-        #offspring=algorithms.varOr(population, toolbox, lambda_=100, cxpb=.5, mutpb=.05)    
-        #print toolbox.map(toolbox.evaluate, offspring)
         
         avgfitnesses=[]
+        popfits=0
+        prb=ProgressBar(self.ngen, popfits)
+        ProgressBar.score=0
+        prb.animate()#popfits)
+        #prb.animate(popfits)
+        #steps=self.ngen/10
         for gen in range(self.ngen):
-            
-            offspring=algorithms.varOr(population, toolbox, lambda_=self.popsize, cxpb=self.cx, mutpb=self.mut)   
-            #print "offspring",offspring
-            #fits=toolbox.map(toolbox.evaluate, offspring)
-            for ind in offspring:
-                ind.fitness.values=toolbox.evaluate(ind)
-            #for fit, ind in zip(fits,population):
-            #    ind.fitness.values=fit
-            
-            population=toolbox.select([k for k,v in itert.groupby(sorted(offspring+population))], k=100)
-            popfits = toolbox.map(toolbox.evaluate, population)
-            #avgfitnesses.append(np.mean(popfits))
+            try:
+                offspring=algorithms.varOr(population, toolbox, lambda_=self.popsize, cxpb=self.cx, mutpb=self.mut)   
+                for ind in offspring:
+                    ind.fitness.values=toolbox.evaluate(ind)
+                population=toolbox.select([k for k,v in itert.groupby(sorted(offspring+population))], k=100)
+                popfits = toolbox.map(toolbox.evaluate, population)
+                prb.score=np.mean(popfits)
+                ProgressBar.score=property(lambda self: self.score+np.mean(popfits))
+                prb.update_time(1, prb.score)
+            except (KeyboardInterrupt, SystemExit):
+                return [origpop, toolbox.map(toolbox.evaluate, origpop), population, toolbox.map(toolbox.evaluate, population)]
+            except:
+                return [origpop, toolbox.map(toolbox.evaluate, origpop), population, toolbox.map(toolbox.evaluate, population)]
+            #print prb.score
+            #new progressbar try
+            #if gen%steps ==0:
+                
+            #    print '\b',gen, np.round(np.mean(popfits), decimals=3),
+            #    sys.stdout.flush() 
+        
+        #print '\b'*1,
+        #print '\b  Done!',
+        #sys.stdout.flush() 
+        #print "Done!"
 
-        #plot(len(avgfitnesses), list(avgfitnesses))
-#        print avgfitnesses
-        #print toolbox.map(toolbox.evaluate, population)
-        return [origpop, toolbox.map(toolbox.evaluate, origpop), population, toolbox.map(toolbox.evaluate, population)]
-            #print toolbox.map(toolbox.evaluate, offspring)
-            #print ofits
-#            fits = toolbox.map(toolbox.evaluate, offspring)
-#            print fits
             
-          #  for fit, ind in zip(ofits, offspring):
-          #      ind.fitness.values=fit
-          #      print fit
+
+        return [origpop, toolbox.map(toolbox.evaluate, origpop), population, toolbox.map(toolbox.evaluate, population)]
+        print "Done!"
             
     def evolverf(self,evalfunc="q2loo"):
         #toolbox.register("map", pool.map)
@@ -309,37 +336,18 @@ class GAdescsel():
 
         for fit, ind in zip(fits,population):
             ind.fitness.values=fit
-            #print fit, ind
-            #print fit
-        #offspring=algorithms.varOr(population, toolbox, lambda_=100, cxpb=.5, mutpb=.05)    
-        #print toolbox.map(toolbox.evaluate, offspring)
         
         avgfitnesses=[]
         for gen in range(self.ngen):
             
             offspring=algorithms.varOr(population, toolbox, lambda_=self.popsize, cxpb=self.cx, mutpb=self.mut)   
-            #print "offspring",offspring
-            #fits=toolbox.map(toolbox.evaluate, offspring)
             for ind in offspring:
                 ind.fitness.values=toolbox.evaluate(ind)
-            #for fit, ind in zip(fits,population):
-            #    ind.fitness.values=fit
             
             population=toolbox.select([k for k,v in itert.groupby(sorted(offspring+population))], k=100)
             popfits = toolbox.map(toolbox.evaluate, population)
             avgfitnesses.append(np.mean(popfits))
-        #plot(len(avgfitnesses), list(avgfitnesses))
-#        print avgfitnesses
-        #print toolbox.map(toolbox.evaluate, population)
         return population
-            #print toolbox.map(toolbox.evaluate, offspring)
-            #print ofits
-#            fits = toolbox.map(toolbox.evaluate, offspring)
-#            print fits
-            
-          #  for fit, ind in zip(ofits, offspring):
-          #      ind.fitness.values=fit
-          #      print fit
             
     def evolverecur(self, rf=False,pops=10):
         totalpop=[]
@@ -366,10 +374,6 @@ class GAdescsel():
         #print totalpop
         toolbox.register("evaluate", self.evalq2loo)
         toolbox.register("select", tools.selBest)
-        #print feedpop
-        #totalpop=[]
-        #for pop in feedpop:
-        #    totalpop.append(pop.items)
         for ind in totalpop:
             ind.fitness.values=toolbox.evaluate(ind)
         population=toolbox.select([k for k,v in itert.groupby(sorted(totalpop))], k=100)
@@ -400,4 +404,4 @@ class GAdescsel():
   #  def by_r2adj():
   #  def by_q2loo():
 
-#output: end population, descriptor frequency stats, average fitness
+#output: end population, descriptor frequency stats, average fitnes
