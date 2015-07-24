@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+import xml.etree.ElementTree as ET
+
 class qdbrep(object):
     
     def __init__(self, dir):
@@ -7,7 +9,7 @@ class qdbrep(object):
     def _getsub(self):
         return [name for name in os.listdir(self.dir)
             if os.path.isdir(os.path.join(self.dir, name))]
-    def get_descriptors(self):
+    def getdescs(self):
         if "descriptors" in self._getsub():
             descfolder=self.dir+"descriptors/"
             for root, dirs, files in os.walk(descfolder):
@@ -22,7 +24,7 @@ class qdbrep(object):
         else:
             raise IOError("No descriptors folder present in this particular QSAR-DB!")
 
-    def get_yvals(self):
+    def getyvals(self):
         if "properties" in self._getsub():
             propfolder=self.dir+"properties/"
             for root, dirs, files in os.walk(propfolder):
@@ -33,4 +35,44 @@ class qdbrep(object):
                 
         else:
             raise IOError("No properties folder present in this particular QSAR-DB!")
+    def getinchis(self):
+        if "compounds" in self._getsub():
+            xmlfile=self.dir+"compounds/compounds.xml"
+            
+            if xmlfile.endswith(".xml"):
+                tree = ET.parse(xmlfile)
+                root = tree.getroot()    
+                inchilist=[]
+                for child in root:
+                    for ele in child:
+                        st= unicode(ele.text)
+                        st=st.encode('UTF-8')
+                        if st.startswith("InChI="):
+                            inchilist.append(st)
+                return inchilist
+    #kocinchilist.append(child[5].text)
+            else:
+                raise TypeError("Input file must be of type XML!")
+    def getcas(xmlfile):
+        
+        if "compounds" in self._getsub():
+            xmlfile=self.dir+"compounds/compounds.xml"
+            
+            if xmlfile.endswith(".xml"):
+                tree = ET.parse(xmlfile)
+                root = tree.getroot()
+                inchilist=[]
+                for child in root:
+                    for ele in child:
+                        st= unicode(ele.text)
+                    #print ele.tag
+                        st=ele.tag
+                        if st.endswith("Cas"):
+                            cas=ele.text
+                            inchilist.append(cas)
+                return inchilist
+    #kocinchilist.append(child[5].text)
+            else:
+                raise TypeError("Input file must be of type XML!") 
+        
             
