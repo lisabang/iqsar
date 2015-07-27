@@ -9,6 +9,6 @@ import filter
 import calculate2
 import GA
 import split
-import GA4
+#import GA4
 import parse
 import qdb
