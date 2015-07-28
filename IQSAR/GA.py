@@ -155,6 +155,12 @@ class GAdescsel():
 #        print self.basetable[ind][1]
         import mlr3 as m
         return m.q2loo_mlr(self.basetable[ind],self.y),
+
+    def evalq2lmo(self,ind):
+        #import mlr3
+#        print self.basetable[ind][1]
+        import mlr3 as m
+        return m.q2lmo_mlr(self.basetable[ind],self.y, kfolds=len(self.popsize/4)),
     def printq2fitness(self,pop):
         q2s=[]
         for ind in pop:
