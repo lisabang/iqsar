@@ -157,10 +157,13 @@ class GAdescsel():
         return m.q2loo_mlr(self.basetable[ind],self.y),
 
     def evalq2lmo(self,ind):
+        def factors(n):    
+            return list(set(reduce(list.__add__, 
+                ([i, n//i] for i in range(1, int(n**0.5) + 1) if n % i == 0))))[1]
         #import mlr3
 #        print self.basetable[ind][1]
         import mlr3 as m
-        return m.q2lmo_mlr(self.basetable[ind],self.y, kfolds=len(self.popsize/4)),
+        return m.q2lmo_mlr(self.basetable[ind],self.y, kfolds=factors(len(self.y))),
     def printq2fitness(self,pop):
         q2s=[]
         for ind in pop:
@@ -259,6 +262,9 @@ class GAdescsel():
         
         if evalfunc=="q2loo":
             toolbox.register("evaluate", self.evalq2loo)
+
+        elif evalfunc=="q2lmo":
+            toolbox.register("evaluate", self.evalq2lmo)
         elif evalfunc=="r2":
             toolbox.register("evaluate", self.evalr2)
         elif evalfunc=="r2adj":
