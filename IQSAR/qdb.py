@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import xml.etree.ElementTree as ET
-
+'''Contains a qdbrep class.  Declare using IQSAR.qdb.qdbrep(/absolute/path/to/unzipped/qsar-db/folder/) and perform getdescs, getyvals, getinchis, getcas functions on that object.'''
 class qdbrep(object):
     
     def __init__(self, dir):

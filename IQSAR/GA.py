@@ -8,22 +8,57 @@ import functools
 import sys
 import signal
 import time
-import sys
-import time
+import multiprocessing
 
 
 #from https://code.google.com/p/corey-projects/source/browse/trunk/python2/progress_bar.py
-class ProgressBar:
-    def __init__(self, duration,score):
-        self.duration = duration
-        #self.evalfuncscore=evalfuncscore
-        self.prog_bar = '[]'
-        self.fill_char = '#'
-        self.width = 40
-        self.score=score
-        self.__update_amount(0,0)
+#class ProgressBar:
 
-    def animate(self):
+try:
+    from IPython.core.display import clear_output
+    have_ipython = True
+except ImportError:
+    have_ipython = False
+
+class ProgressBar:
+    def __init__(self, iterations):
+        self.iterations = iterations
+        self.prog_bar = '[]'
+        self.fill_char = '*'
+        self.width = 40
+        self.__update_amount(0)
+        if have_ipython:
+            self.animate = self.animate_ipython
+        else:
+            self.animate = self.animate_noipython
+
+    def animate_ipython(self, iter):
+        try:
+            clear_output()
+        except Exception:
+            # terminal IPython has no clear_output
+            pass
+        print '\r', self,
+        sys.stdout.flush()
+        self.update_iteration(iter + 1)
+
+    def update_iteration(self, elapsed_iter):
+        self.__update_amount((elapsed_iter / float(self.iterations)) * 100.0)
+        self.prog_bar += '  %dGEN of %sGEN complete' % (elapsed_iter, self.iterations)
+
+    def __update_amount(self, new_amount):
+        percent_done = int(round((new_amount / 100.0) * 100.0))
+        all_full = self.width - 2
+        num_hashes = int(round((percent_done / 100.0) * all_full))
+        self.prog_bar = '[' + self.fill_char * num_hashes + ' ' * (all_full - num_hashes) + ']'
+        pct_place = (len(self.prog_bar) / 2) - len(str(percent_done))
+        pct_string = '%d%%' % percent_done
+        self.prog_bar = self.prog_bar[0:pct_place] + \
+            (pct_string + self.prog_bar[pct_place + len(pct_string):])
+
+
+
+    def animate_noipython(self):
         for i in range(self.duration):
             if sys.platform.lower().startswith('win'):
                 print self, '\r',
@@ -32,15 +67,8 @@ class ProgressBar:
             self.update_time(i + 1, self.score)
             time.sleep(1) 
         print self
-    def update_score(self, newscore):
-        meh=' Avg score: %s' % self.score
-        return meh
-    def update_time(self, elapsed_secs,newscore):
-        self.__update_amount((elapsed_secs / float(self.duration)) * 100.0, newscore)
-        self.score=newscore
-        self.prog_bar += '  %dGEN/%sGEN' % (elapsed_secs, self.duration)
         
-    def __update_amount(self, new_amount,newscore):
+    def __update_amount_old(self, new_amount,newscore):
         percent_done = int(round((new_amount / 100.0) * 100.0))
         all_full = self.width - 2
         num_hashes = int(round((percent_done / 100.0) * all_full))
@@ -79,6 +107,8 @@ class GAdescsel():
         self.indsize=indsize
         self.cx=cx
         self.mut=mut
+        pool = multiprocessing.Pool()
+
     def ct_calls(func):
         @functools.wraps(func)
         def decor(*args, **kwargs):
@@ -155,7 +185,6 @@ class GAdescsel():
 #        print self.basetable[ind][1]
         import mlr3 as m
         return m.q2loo_mlr(self.basetable[ind],self.y),
-
     def evalq2lmo(self,ind):
         def factors(n):    
             return list(set(reduce(list.__add__, 
@@ -179,6 +208,7 @@ class GAdescsel():
         toolbox.register("mate", tools.cxOnePoint) #Uniform, indpb=0.5)
         toolbox.register("mutate", self.mutaRan)#, indpb=self.mut)
         toolbox.register("select", tools.selBest)
+        toolbox.register("map", pool.map)
         population=toolbox.population()
         
         #print population
@@ -262,7 +292,6 @@ class GAdescsel():
         
         if evalfunc=="q2loo":
             toolbox.register("evaluate", self.evalq2loo)
-
         elif evalfunc=="q2lmo":
             toolbox.register("evaluate", self.evalq2lmo)
         elif evalfunc=="r2":
@@ -287,9 +316,9 @@ class GAdescsel():
         
         avgfitnesses=[]
         popfits=0
-        prb=ProgressBar(self.ngen, popfits)
-        ProgressBar.score=0
-        prb.animate()#popfits)
+        prb=ProgressBar(self.ngen)#, popfits)
+        #ProgressBar.score=0
+        #prb.animate()#popfits)
         #prb.animate(popfits)
         #steps=self.ngen/10
         for gen in range(self.ngen):
@@ -299,9 +328,10 @@ class GAdescsel():
                     ind.fitness.values=toolbox.evaluate(ind)
                 population=toolbox.select([k for k,v in itert.groupby(sorted(offspring+population))], k=100)
                 popfits = toolbox.map(toolbox.evaluate, population)
-                prb.score=np.mean(popfits)
-                ProgressBar.score=property(lambda self: self.score+np.mean(popfits))
-                prb.update_time(1, prb.score)
+                prb.animate(gen)
+                #prb.score=np.mean(popfits)
+                #ProgressBar.score=property(lambda self: self.score+np.mean(popfits))
+                #prb.update_time(1, prb.score)
             except (KeyboardInterrupt, SystemExit):
                 return [origpop, toolbox.map(toolbox.evaluate, origpop), population, toolbox.map(toolbox.evaluate, population)]
             except:
