@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import xml.etree.ElementTree as ET
+import urllib
+
 '''Contains a qdbrep class.  Declare using IQSAR.qdb.qdbrep(/absolute/path/to/unzipped/qsar-db/folder/) and perform getdescs, getyvals, getinchis, getcas functions on that object.'''
 class qdbrep(object):
     
@@ -74,5 +76,18 @@ class qdbrep(object):
     #kocinchilist.append(child[5].text)
             else:
                 raise TypeError("Input file must be of type XML!") 
-        
-            
+
+
+    def getmol(self,folderpath):
+        '''This command automatically downloads .mol files from the NIST websites to folderpath (must be written as string, i.e. /absolute/path/to/folder/).  for this to work, the original QSAR-DB must have  inchi files. this relies on the getinchi() method of this class.  This may not work if the inchi is ambiguous and there is more than one NIST mol entry.  Check the folder and the print output to check.'''
+        nisturl="http://webbook.nist.gov/cgi/cbook.cgi?InChIFile="
+        inchilist=self.getinchis()
+        if type(folderpath)==str:
+
+            for inchi in inchilist:
+                #print nisturl+inchi
+                urllib.urlretrieve(nisturl+inchi, folderpath+str(inchilist.index(inchi))+".mol")
+                if inchilist.index(inchi)==len(inchilist):
+                    print "saved "+str(folderpath)+"1~"+str(inchilist.index(inchi))+".mol"
+        else:
+            raise TypeError("Type of folderpath must be a string!")
