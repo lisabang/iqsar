@@ -55,7 +55,7 @@ class qdbrep(object):
     #kocinchilist.append(child[5].text)
             else:
                 raise TypeError("Input file must be of type XML!")
-    def getcas(xmlfile):
+    def getcas(self,xmlfile):
         
         if "compounds" in self._getsub():
             xmlfile=self.dir+"compounds/compounds.xml"
