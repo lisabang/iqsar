@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import xml.etree.ElementTree as ET
 import urllib
-
+import copy
 '''Contains a qdbrep class.  Declare using IQSAR.qdb.qdbrep(/absolute/path/to/unzipped/qsar-db/folder/) and perform getdescs, getyvals, getinchis, getcas functions on that object.'''
 class qdbrep(object):
     
@@ -37,57 +37,43 @@ class qdbrep(object):
                 
         else:
             raise IOError("No properties folder present in this particular QSAR-DB!")
-    def getinchis(self):
-        if "compounds" in self._getsub():
-            xmlfile=self.dir+"compounds/compounds.xml"
-            
-            if xmlfile.endswith(".xml"):
-                tree = ET.parse(xmlfile)
-                root = tree.getroot()    
-                inchilist=[]
-                for child in root:
-                    for ele in child:
-                        st= unicode(ele.text)
-                        st=st.encode('UTF-8')
-                        if st.startswith("InChI="):
-                            inchilist.append(st)
-                return inchilist
-    #kocinchilist.append(child[5].text)
-            else:
-                raise TypeError("Input file must be of type XML!")
-    def getcas(self,xmlfile):
-        
+    def getcompounds(self):
         if "compounds" in self._getsub():
             xmlfile=self.dir+"compounds/compounds.xml"
             
             if xmlfile.endswith(".xml"):
                 tree = ET.parse(xmlfile)
                 root = tree.getroot()
-                inchilist=[]
+                childs=[]
                 for child in root:
-                    for ele in child:
-                        st= unicode(ele.text)
-                    #print ele.tag
-                        st=ele.tag
-                        if st.endswith("Cas"):
-                            cas=ele.text
-                            inchilist.append(cas)
-                return inchilist
-    #kocinchilist.append(child[5].text)
+                    tindex=[ele.tag for ele in child]
+                    for n,i in enumerate(tindex):
+                        junk,notjunk=i.split("}")
+                        tindex[n]=notjunk
+                    childinfo=pd.Series([ele.text for ele in child], index=tindex)#, index=pdin)
+                    childs.append(childinfo)
+                mas=pd.concat(childs, axis=1)
+                mas2=mas.T
+                return mas2.set_index(keys="Id", drop=True)
+
             else:
-                raise TypeError("Input file must be of type XML!") 
-
-
+                raise TypeError("Input file must be of type XML!")
     def getmol(self,folderpath):
         '''This command automatically downloads .mol files from the NIST websites to folderpath (must be written as string, i.e. /absolute/path/to/folder/).  for this to work, the original QSAR-DB must have  inchi files. this relies on the getinchi() method of this class.  This may not work if the inchi is ambiguous and there is more than one NIST mol entry.  Check the folder and the print output to check.'''
         nisturl="http://webbook.nist.gov/cgi/cbook.cgi?InChIFile="
-        inchilist=self.getinchis()
-        if type(folderpath)==str:
+        inchiseries=self.getcompounds()["InChI"]
+        import math
 
-            for inchi in inchilist:
-                #print nisturl+inchi
-                urllib.urlretrieve(nisturl+inchi, folderpath+str(inchilist.index(inchi))+".mol")
-                if inchilist.index(inchi)==len(inchilist):
-                    print "saved "+str(folderpath)+"1~"+str(inchilist.index(inchi))+".mol"
+        if type(folderpath)==str:
+            for i in inchiseries.index:
+                if type(inchiseries[i])==float:
+                    print str(i)+".mol not downloaded"
+                else:
+                    urllib.urlretrieve(nisturl+inchiseries[i], folderpath+str(i)+".mol")
+                
+          #  for inchi in inchilist:
+          #      #print nisturl+inchi
+          #      urllib.urlretrieve(nisturl+inchi, folderpath+str(inchilist.index(inchi))+".mol")
+          #      print "saved "+str(folderpath)+"1~"+str(inchilist.index(inchi))+".mol"
         else:
             raise TypeError("Type of folderpath must be a string!")
