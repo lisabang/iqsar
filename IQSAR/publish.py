@@ -4,7 +4,7 @@
 # Widget related imports
 from IPython.html import widgets
 from IPython.display import display, clear_output, Javascript
-from traitlets import Unicode
+#from traitlets import Unicode
 import json
 import os
 import urllib2
@@ -21,9 +21,6 @@ from IPython.nbconvert.utils.exceptions import ConversionException
 #exporter_names = widgets.Dropdown(options=get_export_names(), value='html')
 #export_button = widgets.Button(description="Export")
 #download_link = widgets.HTML(visible=False)
-connection_file_path = kernel.get_connection_file()
-connection_file = os.path.basename(connection_file_path)
-kernel_id = connection_file.split('-', 1)[1].split('.')[0]
 
 def get_name():
     sessions = json.load(urllib2.urlopen('http://127.0.0.1:8888/api/sessions'))
@@ -34,6 +31,10 @@ def get_name():
 
 
 class ipynb():
+    
+    connection_file_path = kernel.get_connection_file()
+    connection_file = os.path.basename(connection_file_path)
+    kernel_id = connection_file.split('-', 1)[1].split('.')[0]
 
 
     filename =  os.getcwd()+"/"+get_name()#notebook_name.value

@@ -9,6 +9,7 @@ import sys
 import signal
 import time
 import multiprocessing
+import pandas as pd
 
 
 #from https://code.google.com/p/corey-projects/source/browse/trunk/python2/progress_bar.py
@@ -390,7 +391,17 @@ class GAdescsel():
             popfits = toolbox.map(toolbox.evaluate, population)
             avgfitnesses.append(np.mean(popfits))
         return population
-            
+    def get_df(self,chosenind):
+        #dictofseries={}
+        #for l in range(self.indsize):
+        #        dictofseries[str(desclist[l])]=(self.basetable[desclist[l]])#, how="outer",right_index=True)
+        meh=self.basetable[chosenind]
+        import mlr3 as m
+        print "r2 is: ",m.mlr(meh,self.y)[2], "r2adj is: ",m.mlr(meh,self.y)[3], "q2loo is: ",m.q2loo_mlr(meh,self.y)
+        print "coefficients are:", m.mlr(meh,self.y)[0]
+        return meh
+
+
     def evolverecur(self, rf=False,pops=10):
         totalpop=[]
         origpops=[]

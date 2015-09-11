@@ -9,9 +9,11 @@ class qdbrep(object):
     def __init__(self, dir):
         self.dir=dir
     def _getsub(self):
+        '''The _getsub method gets all the subfolders in the qdb folder given'''
         return [name for name in os.listdir(self.dir)
             if os.path.isdir(os.path.join(self.dir, name))]
     def getdescs(self):
+        '''The getdescs method collates the data from the "descriptors" folder into a pandas dataframe.  One can use the .to_csv() method from pandas to export to csv.'''
         if "descriptors" in self._getsub():
             descfolder=self.dir+"descriptors/"
             for root, dirs, files in os.walk(descfolder):
@@ -27,17 +29,25 @@ class qdbrep(object):
             raise IOError("No descriptors folder present in this particular QSAR-DB!")
 
     def getyvals(self):
+        '''Gets all the activity values from the "properties" folder and transposes to a pandas DataFrame'''
         if "properties" in self._getsub():
             propfolder=self.dir+"properties/"
             for root, dirs, files in os.walk(propfolder):
                 if not dirs:
                     pass
                 else:
-                    return pd.read_table(propfolder+str(dirs[0])+"/values", index_col=0)
+                    if len(dirs)==1:
+                        return pd.read_table(propfolder+str(dirs[0])+"/values", index_col=0)
+                    elif len(dirs)>1:
+                        saffa=[]
+                        for directorynum in range(len(dirs)):
+                            saffa.append(pd.read_table(propfolder+str(dirs[directorynum])+"/values", index_col=0))
+                        return pd.concat(saffa, axis=1)
                 
         else:
             raise IOError("No properties folder present in this particular QSAR-DB!")
     def getcompounds(self):
+        '''Extracts information from compounds/compounds.xml to a pandas DataFrame, which can be iterated over.'''
         if "compounds" in self._getsub():
             xmlfile=self.dir+"compounds/compounds.xml"
             

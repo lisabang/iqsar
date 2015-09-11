@@ -14,4 +14,5 @@ import split
 import parse
 import qdb
 import dragon_scripter
+import GAEV
 

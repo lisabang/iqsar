@@ -1,5 +1,5 @@
 import os
-import module_locator
+#import module_locator
 import time
 import xml.etree.ElementTree as ET
 import dragonss
@@ -31,22 +31,26 @@ class MolFilePath:
         self.root.find("OPTIONS/SaveExclusionOptionsToVariables").set("value","false")
         self.root.find("OPTIONS/SaveExcludeMisMolecules").set("value","false")
         self.root.find("OPTIONS/SaveExcludeRejectedMolecules").set("value","false")
-    def _getmols(self,folderaddress):
+    def _getmols(self,folderaddress, m_ext="hin"):
         files=[]
         for file in os.listdir(folderaddress):
-            if file.endswith(".sdf"):
+            if file.endswith("."+str(m_ext)):
                 files.append(folderaddress+file)
             
         return sorted(files)
 
-    def entermolfolder(self):
+    def entermolfolder(self,molext="hin"):
         thist=self.root.find("MOLFILES/molInput")
         #self.root.remove()
-        listofmols=self._getmols(self.molfol)
+        listofmols=self._getmols(self.molfol, m_ext=molext)
         #print listofmols
+        
         for mol in listofmols:
             #print mol
-            ET.SubElement(thist,"molFile").set('value',mol)
+            ET.SubElement(thist,"molFile").set('value',mol)               
+#        for mol in thist:
+        
+            
             #print mol
                 #print molfile.attrib
         
@@ -73,9 +77,9 @@ class MolFilePath:
                 savefile.set("value",self.datapath)
         else:
             raise TypeError("Save path must be a string")
-    def write_defaultdrs(self):
+    def write_defaultdrs(self,ext):
         self.defaultoptions()
-        self.entermolfolder()
+        self.entermolfolder(molext=ext)
         self.enterblocks(range(1,30))
         self._puttodaysdate()
         self.changesavefilepath()
