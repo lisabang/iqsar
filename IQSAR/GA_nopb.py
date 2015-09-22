@@ -177,7 +177,7 @@ class GAdescsel():
         return population
 
 
-    def evolve(self,evalfunc="q2loo"):
+    def evolve(self,evalfunc="q2loo",startpop=None):
      
         toolbox.register("genind", self.mkeindseed, self.indsize)
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.genind)
@@ -193,12 +193,15 @@ class GAdescsel():
         elif evalfunc=="r2adj":
             toolbox.register("evaluate", self.evalr2adj)
         else:
-            raise ValueError("not a valid evaluation function specified; use evalr2adj, evalr2, or q2loo")
+            raise ValueError("not a valid evaluation function specified; use evalr2adj, evalr2, q2lmo, or q2loo")
         
         toolbox.register("mate", tools.cxOnePoint) #Uniform, indpb=0.5)
         toolbox.register("mutate", self.mutaRan)#, indpb=self.mut)
         toolbox.register("select", tools.selBest)
-        origpop=toolbox.population()
+        if startpop==None:
+             origpop=toolbox.population()
+        else:
+             origpop=startpop
         #self.mkeindseed.count=0
         population=cp.deepcopy(origpop)
         fits=toolbox.map(toolbox.evaluate, population)
