@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.dragonss &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.dragonss</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="samp"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.dragonss.samp">[docs]</a><span class="k">def</span> <span class="nf">samp</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+<span class="s">&lt;DRAGON version=&quot;6.0.32&quot; script_version=&quot;1&quot; generation_date=&quot;2014/04/01&quot;&gt;</span>
+<span class="s">  &lt;OPTIONS&gt;</span>
+<span class="s">    &lt;CheckUpdates value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;SaveLayout value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;ShowWorksheet value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;Decimal_Separator value=&quot;.&quot;/&gt;</span>
+<span class="s">    &lt;Missing_String value=&quot;NaN&quot;/&gt;</span>
+<span class="s">    &lt;DefaultMolFormat value=&quot;1&quot;/&gt;</span>
+<span class="s">    &lt;HelpBrowser value=&quot;C:\Program Files (x86)\Google\Chrome\Application\chrome.exe&quot;/&gt;</span>
+<span class="s">    &lt;RejectUnusualValence value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;Add2DHydrogens value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;MaxSRforAllCircuit value=&quot;19&quot;/&gt;</span>
+<span class="s">    &lt;MaxSR value=&quot;35&quot;/&gt;</span>
+<span class="s">    &lt;MaxSRDetour value=&quot;30&quot;/&gt;</span>
+<span class="s">    &lt;LogPathWalk value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;LogEdge value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;Weights&gt;</span>
+<span class="s">      &lt;weight name=&quot;Mass&quot;/&gt;</span>
+<span class="s">      &lt;weight name=&quot;VdWVolume&quot;/&gt;</span>
+<span class="s">      &lt;weight name=&quot;Electronegativity&quot;/&gt;</span>
+<span class="s">      &lt;weight name=&quot;Polarizability&quot;/&gt;</span>
+<span class="s">      &lt;weight name=&quot;Ionization&quot;/&gt;</span>
+<span class="s">      &lt;weight name=&quot;I-State&quot;/&gt;</span>
+<span class="s">    &lt;/Weights&gt;</span>
+<span class="s">    &lt;SaveOnlyData value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveLabelsOnSeparateFile value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveFormatBlock value=&quot;%b - %n.txt&quot;/&gt;</span>
+<span class="s">    &lt;SaveFormatSubBlock value=&quot;%b-</span><span class="si">%s</span><span class="s"> - %n - %m.txt&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeMisVal value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeAllMisVal value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeConst value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeNearConst value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeStdDev value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveStdDevThreshold value=&quot;0.0001&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeCorrelated value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;SaveCorrThreshold value=&quot;0.99&quot;/&gt;</span>
+<span class="s">    &lt;SaveExclusionOptionsToVariables value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeMisMolecules value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveExcludeRejectedMolecules value=&quot;false&quot;/&gt;</span>
+<span class="s">  &lt;/OPTIONS&gt;</span>
+<span class="s">  &lt;DESCRIPTORS&gt;</span>
+<span class="s">    &lt;block id=&quot;1&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;2&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;3&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;4&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;5&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;6&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;7&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;8&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;9&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;10&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;11&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;12&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;13&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;14&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;15&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;16&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;17&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;18&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;19&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;20&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;21&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;22&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;23&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;24&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;25&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;26&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;27&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;28&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;block id=&quot;29&quot; SelectAll=&quot;false&quot;/&gt;</span>
+<span class="s">  &lt;/DESCRIPTORS&gt;</span>
+<span class="s">  &lt;MOLFILES&gt;</span>
+<span class="s">    &lt;molInput value=&quot;file&quot;/&gt;</span>
+<span class="s">    &lt;molFile value=&quot;/MOLFILE/DIRECTORY/HERE.mol&quot;/&gt;</span>
+<span class="s">  &lt;/MOLFILES&gt;</span>
+<span class="s">  &lt;OUTPUT&gt;</span>
+<span class="s">    &lt;SaveStdOut value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveProject value=&quot;false&quot;/&gt;</span>
+<span class="s">    &lt;SaveFile value=&quot;true&quot;/&gt;</span>
+<span class="s">    &lt;SaveType value=&quot;singlefile&quot;/&gt;</span>
+<span class="s">    &lt;SaveFilePath value=&quot;RESULT_FILE_ADDRESS_HERE.txt&quot;/&gt;</span>
+<span class="s">    &lt;logMode value=&quot;none&quot;/&gt;</span>
+<span class="s">  &lt;/OUTPUT&gt;</span>
+<span class="s">&lt;/DRAGON&gt;&#39;&#39;&#39;</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

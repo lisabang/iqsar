@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.mlr2 &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.mlr2</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;some crap here in the docstring&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pylab</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">linalg</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+
+
+<div class="viewcode-block" id="mlr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr2.mlr">[docs]</a><span class="k">def</span> <span class="nf">mlr</span><span class="p">(</span><span class="n">x_of_trainingset</span><span class="p">,</span><span class="n">y_actual</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">npones</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_actual</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">A_sl</span><span class="o">=</span><span class="n">x_of_trainingset</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+    <span class="n">A</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">A_sl</span><span class="p">,</span><span class="n">npones</span><span class="p">])</span>
+
+    <span class="n">lstsq</span><span class="p">,</span><span class="n">residuals</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">something</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">y_actual</span><span class="p">)</span>
+    <span class="c">#print &quot;coefficient output:&quot;</span>
+    <span class="c">#print lstsq</span>
+
+    <span class="n">r2</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">residuals</span><span class="o">/</span><span class="p">(</span><span class="n">y_actual</span><span class="o">.</span><span class="n">size</span><span class="o">*</span><span class="n">y_actual</span><span class="o">.</span><span class="n">var</span><span class="p">())</span>
+    <span class="c">#print &quot;r2:&quot;</span>
+    <span class="c">#print r2</span>
+
+    <span class="n">degfreedom</span><span class="o">=</span><span class="n">y_actual</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="mi">1</span>
+    <span class="c">#print &quot;degrees of freedom:&quot;</span>
+    <span class="c">#print degfreedom</span>
+    <span class="n">y_actual</span><span class="o">.</span><span class="n">var</span><span class="p">()</span>
+
+    <span class="n">r2adj</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="p">(((</span><span class="mi">1</span><span class="o">-</span><span class="n">r2</span><span class="p">)</span><span class="o">*</span><span class="n">degfreedom</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">y_actual</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="n">rank</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="c">#print &quot;r2adj:&quot;</span>
+    <span class="c">#print r2adj</span>
+
+    <span class="n">RMSE</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">r2</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y_actual</span><span class="p">)</span>
+    <span class="c">#print &quot;RMSE:&quot;</span>
+    <span class="c">#print RMSE</span>
+
+
+    
+    <span class="c">#fitness=collections.namedtuple([x_of_trainingset],[r2,r2adj,RMSE])</span>
+    <span class="k">return</span> <span class="n">lstsq</span><span class="p">,</span> <span class="n">r2</span><span class="p">,</span> <span class="n">r2adj</span><span class="p">,</span> <span class="n">RMSE</span>
+
+
+    <span class="c">#y_predicted=(lstsq[0]*liu_train(0))+(lstsq[1]*liu_train(1))+(lstsq[2])+(lstsq[3])+(lstsq[4])+(lstsq[5])+lstsq[6]</span>
+    <span class="c">#print &quot;y-predicted:&quot;</span>
+    <span class="c">#print y_predicted</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    LOOdict={}</span>
+<span class="sd">    for n in range(0,len(liu_train(0))):</span>
+<span class="sd">    #if n in x1.keys():</span>
+<span class="sd">        #leaveoneout=((lstsq[0]*x1[n])+(lstsq[1]*x2[n])+(lstsq[2]*x3[n])+(lstsq[3]*x4[n])+(lstsq[4]*x5[n])+(lstsq[5]*x6[n])+lstsq[6])</span>
+<span class="sd">        #leaveoneout=y_predicted[n]</span>
+<span class="sd">        Aloo=np.delete(A, (n), axis=0)</span>
+<span class="sd">        zloo=np.delete(z, (n), axis=0)</span>
+<span class="sd">        #print zloo</span>
+<span class="sd">        lstsqLOO,residualsLOO,rankLOO,somethingLOO=linalg.lstsq(Aloo,zloo)</span>
+<span class="sd">        LOOdict[n]=lstsqLOO</span>
+<span class="sd">    #else:</span>
+<span class="sd">        pass</span>
+<span class="sd">    #</span>
+<span class="sd">    #</span>
+<span class="sd">#yiminusyili=sum(y_predicted)-leaveoneout</span>
+
+<span class="sd">#print LOOdict[0], LOOdict[1]</span>
+
+<span class="sd">for f in range(0,len(x1)):</span>
+<span class="sd">    gsloo=LOOdict[f][0]*x1+LOOdict[f][1]*x2+LOOdict[f][2]*x3+LOOdict[f][3]*x4+LOOdict[f][4]*x5+LOOdict[f][5]*x6</span>
+<span class="sd">    #print LOOdict[f][0]*x1+LOOdict[f][1]*x2</span>
+<span class="sd">    constantloo=LOOdict[f][6]</span>
+<span class="sd">    loo=gsloo+constantloo</span>
+<span class="sd">    #print constantloo</span>
+<span class="sd">#print constantloo</span>
+<span class="sd">    #for d in range(0,6):</span>
+<span class="sd">        #print givensampleloo[d]</span>
+<span class="sd">    #    gsloo[d]*x1+gsloo[d+1]*x2+gsloo[d+2]*x3+gsloo[d+3]+gsloo[d+4]*x4+gsloo[d+5]*x5+gsloo[d+6]</span>
+<span class="sd">#leaveoneout=((lstsq[0]*x1[n])+(lstsq[1]*x2[n])+(lstsq[2]*x3[n])+(lstsq[3]*x4[n])+(lstsq[4]*x5[n])+(lstsq[5]*x6[n])+lstsq[6])</span>
+
+<span class="sd">#import numpy as np</span>
+<span class="sd">#from numpy import linalg</span>
+<span class="sd">#A = np.column_stack([x1, x2, x3, x4, x5, x6, np.ones(64, float)])</span>
+<span class="sd">#lstsq,residuals,rank,something=linalg.lstsq(A, z)</span>
+
+
+<span class="sd"># In[77]:</span>
+
+<span class="sd">ssss=(liu_train[&quot;Y-Pred&quot;]-loo)</span>
+
+
+<span class="sd"># In[78]:</span>
+
+<span class="sd">diff=((liu_train[&quot;Y-Pred&quot;]-liu_train[&quot;Y-Pred&quot;].mean()))</span>
+
+
+<span class="sd"># In[79]:</span>
+
+<span class="sd">q_squared=1-((sum(np.square(ssss)))/sum(np.square(diff)))</span>
+
+
+<span class="sd"># In[79]:</span>
+
+
+
+
+<span class="sd"># In[80]:</span>
+<span class="sd">print &quot;q_squaredLOO:&quot;</span>
+<span class="sd">print q_squared</span>
+<span class="sd">&quot;&quot;&quot;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

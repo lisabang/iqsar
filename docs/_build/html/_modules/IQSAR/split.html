@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.split &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.split</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<div class="viewcode-block" id="data"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.split.data">[docs]</a><span class="k">class</span> <span class="nc">data</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;splits a dataset into test and training sets by one of three methods: completely random,</span>
+<span class="sd">    by values of a given column, and by selecting interactively thru an ipynb SelectMultiple widget&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dataset</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span>
+<div class="viewcode-block" id="data.random"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.split.data.random">[docs]</a>    <span class="k">def</span> <span class="nf">random</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">n_training</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;This splits the data into testset and training set randomly.  Just specify the number of compounds you would like to be in the training set.  The first return is the training set, the second is the test set.&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">n_training</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;n_training must be of type int&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">allrows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">trainrows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">allrows</span><span class="p">,</span><span class="n">n_training</span><span class="p">)</span>
+            <span class="n">trainingset</span><span class="p">,</span><span class="n">testset</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">trainrows</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">trainrows</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">trainingset</span><span class="p">,</span> <span class="n">testset</span></div>
+<div class="viewcode-block" id="data.by_col"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.split.data.by_col">[docs]</a>    <span class="k">def</span> <span class="nf">by_col</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">columnname</span><span class="p">,</span><span class="n">traincolval</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;This splits the dataset according to the values of a given column.  Essentially, this is a manual technique.  For example, one may have a column &quot;Set&quot; which has the a value of 0 or 1 for each column.  One wants the &quot;1&quot;s to be in the training set.  If one uses the by_col method of IQSAR.split.data object, you would specify *.by_col(&quot;Set&quot;,1)&#39;&#39;&#39;</span>
+        <span class="n">splitter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">copy</span><span class="p">()[</span><span class="n">columnname</span><span class="p">]</span>
+        <span class="c">#splitter=splitter</span>
+        <span class="n">trainingset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">splitter</span><span class="o">==</span><span class="n">traincolval</span><span class="p">]</span>
+        <span class="n">testset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">splitter</span><span class="o">!=</span><span class="n">traincolval</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">trainingset</span><span class="p">,</span><span class="n">testset</span></div>
+<div class="viewcode-block" id="data.manuallist"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.split.data.manuallist">[docs]</a>    <span class="k">def</span> <span class="nf">manuallist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainrows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;If you have a list of rows that you would like to be in the training set, you can do this by passing a list of indexes for those rows into the manuallist method.&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">trainrows</span><span class="p">)</span> <span class="o">!=</span><span class="nb">list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;trainrows must be of type list&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">train</span><span class="p">,</span><span class="n">test</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">trainrows</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">trainrows</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">train</span><span class="p">,</span><span class="n">test</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

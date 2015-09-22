@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.mlr3 &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.mlr3</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">cross_validation</span>
+<div class="viewcode-block" id="mlr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr3.mlr">[docs]</a><span class="k">def</span> <span class="nf">mlr</span><span class="p">(</span><span class="n">x_of_trainingset</span><span class="p">,</span><span class="n">y_actual</span><span class="p">):</span>
+    
+    <span class="n">columnnames</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">x_of_trainingset</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">npones</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_actual</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+    <span class="n">A_sl</span><span class="o">=</span><span class="n">x_of_trainingset</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+    <span class="n">A</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">A_sl</span><span class="p">,</span><span class="n">npones</span><span class="p">])</span>
+    <span class="n">lstsq</span><span class="p">,</span><span class="n">residuals</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">something</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">y_actual</span><span class="p">)</span>
+    <span class="n">degfreedom</span><span class="o">=</span><span class="n">y_actual</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="mi">1</span>
+    
+    <span class="n">r2</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">residuals</span><span class="o">/</span><span class="p">(</span><span class="n">y_actual</span><span class="o">.</span><span class="n">size</span><span class="o">*</span><span class="n">y_actual</span><span class="o">.</span><span class="n">var</span><span class="p">())</span>
+    <span class="n">r2adj</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="p">(((</span><span class="mi">1</span><span class="o">-</span><span class="n">r2</span><span class="p">)</span><span class="o">*</span><span class="n">degfreedom</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">y_actual</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="n">rank</span><span class="o">-</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">RMSE</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">r2</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y_actual</span><span class="p">)</span>
+
+    <span class="c">#fitness=collections.namedtuple([x_of_trainingset],[r2,r2adj,RMSE])</span>
+    <span class="k">return</span> <span class="n">lstsq</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">r2</span><span class="p">,</span> <span class="n">r2adj</span><span class="p">,</span> <span class="n">RMSE</span>
+
+
+    <span class="c">#y_predicted=(lstsq[0]*liu_train(0))+(lstsq[1]*liu_train(1))+(lstsq[2])+(lstsq[3])+(lstsq[4])+(lstsq[5])+lstsq[6]</span>
+    <span class="c">#print &quot;y-predicted:&quot;</span>
+    <span class="c">#print y_predicted</span></div>
+<div class="viewcode-block" id="mlrr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr3.mlrr">[docs]</a><span class="k">def</span> <span class="nf">mlrr</span><span class="p">(</span><span class="n">x_of_trainingset</span><span class="p">,</span><span class="n">y_actual</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">npones</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_of_trainingset</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">A_sl</span><span class="o">=</span><span class="n">x_of_trainingset</span>
+    <span class="n">A</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">A_sl</span><span class="p">,</span><span class="n">npones</span><span class="p">])</span>
+
+    <span class="n">lstsq</span><span class="p">,</span><span class="n">residuals</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">something</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">y_actual</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lstsq</span>
+</div>
+<div class="viewcode-block" id="pmlr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr3.pmlr">[docs]</a><span class="k">def</span> <span class="nf">pmlr</span><span class="p">(</span><span class="n">x_of_trainingset</span><span class="p">,</span><span class="n">y_actual</span><span class="p">):</span>
+    <span class="n">npones</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_actual</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+    <span class="n">A</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">x_of_trainingset</span><span class="p">,</span><span class="n">npones</span><span class="p">])</span>
+    <span class="n">lstsq</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">A</span><span class="p">),</span> <span class="n">y_actual</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lstsq</span></div>
+<div class="viewcode-block" id="kfoldmlr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr3.kfoldmlr">[docs]</a><span class="k">def</span> <span class="nf">kfoldmlr</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span><span class="n">yi</span><span class="p">,</span><span class="n">nfolds</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;gives the y-hats for a q2LOO calculation&#39;&#39;&#39;</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">xi</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">yi</span><span class="o">.</span><span class="n">values</span>
+    
+    <span class="n">kf</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="o">.</span><span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">n_folds</span><span class="o">=</span><span class="n">nfolds</span><span class="p">)</span><span class="c">#indices=None, shuffle=False, random_state=None)</span>
+    <span class="n">y_hats</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">train_index</span><span class="p">,</span> <span class="n">test_index</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+        <span class="n">x_train</span><span class="p">,</span> <span class="n">x_test</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">train_index</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+        <span class="n">y_train</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="n">train_index</span><span class="p">]</span>
+        <span class="n">coefficients</span><span class="o">=</span><span class="n">mlrr</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+        <span class="c">#x_train=x_train</span>
+        <span class="c">#y_train=y_train</span>
+        <span class="n">yhat</span><span class="o">=</span><span class="n">coefficients</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+ 
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x_test</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="n">slopetimesx</span><span class="o">=</span><span class="n">x_test</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">coefficients</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">yhat</span><span class="o">=</span><span class="n">yhat</span><span class="o">+</span><span class="n">slopetimesx</span>
+        <span class="n">y_hats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">yhat</span><span class="p">))</span>
+        
+    <span class="c">#cleanyhats=[]</span>
+    <span class="c">#for e in y_hats:</span>
+    <span class="c">#    cleanyhats.append(float(e))</span>
+    <span class="n">stack</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_hats</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stack</span></div>
+<div class="viewcode-block" id="q2loo_mlr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr3.q2loo_mlr">[docs]</a><span class="k">def</span> <span class="nf">q2loo_mlr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;calculates q2loo of a linear regression of x and y where both x and y are 1-d&#39;&#39;&#39;</span>
+    <span class="n">yhats</span><span class="o">=</span><span class="n">kfoldmlr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="n">PRESS</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span><span class="o">-</span><span class="n">yhats</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">y_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">TSS</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">y_mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="c">#TSS=sum((y-np.mean(y))**2)</span>
+    <span class="n">r2cv</span><span class="o">=</span><span class="p">(</span><span class="n">TSS</span><span class="o">-</span><span class="n">PRESS</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">TSS</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="c">#1-(PRESS/TSS)</span>
+    <span class="k">return</span> <span class="n">r2cv</span></div>
+<div class="viewcode-block" id="kfoldmlr2"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr3.kfoldmlr2">[docs]</a><span class="k">def</span> <span class="nf">kfoldmlr2</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span><span class="n">yi</span><span class="p">,</span><span class="n">nfolds</span><span class="p">):</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">xi</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">yi</span><span class="o">.</span><span class="n">values</span>
+    
+    <span class="n">kf</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="o">.</span><span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">n_folds</span><span class="o">=</span><span class="n">nfolds</span><span class="p">)</span><span class="c">#indices=None, shuffle=False, random_state=None)</span>
+    <span class="n">y_hats</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">y_tests</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">train_index</span><span class="p">,</span> <span class="n">test_index</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+        
+        <span class="n">x_train</span><span class="p">,</span> <span class="n">x_test</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">train_index</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+        <span class="n">y_train</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="n">train_index</span><span class="p">]</span>
+        <span class="n">coefficients</span><span class="o">=</span><span class="n">pmlr</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+        <span class="n">yhat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span><span class="n">coefficients</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="n">coefficients</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">y_test</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+        <span class="n">y_tests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_test</span><span class="p">))</span>
+        
+        <span class="n">y_hat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">yhat</span><span class="p">)</span>
+        <span class="n">y_hats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_hat</span><span class="p">)</span>
+    <span class="n">y_tests</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_tests</span><span class="p">)</span>
+    <span class="n">stack</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_hats</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stack</span><span class="p">,</span> <span class="n">y_tests</span>
+</div>
+<div class="viewcode-block" id="q2lmo_mlr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.mlr3.q2lmo_mlr">[docs]</a><span class="k">def</span> <span class="nf">q2lmo_mlr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">kfolds</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;calculates q2loo of a linear regression of x and y where both x and y are 1-d&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">kfolds</span><span class="p">)</span><span class="o">!=</span><span class="nb">int</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">yhats</span><span class="p">,</span><span class="n">ytest</span><span class="o">=</span><span class="n">kfoldmlr2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">kfolds</span><span class="p">)</span>
+        <span class="c">#ytest=kfoldmlr2(x,y,kfolds)[1]</span>
+        <span class="n">PRESS</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">ytest</span><span class="o">-</span><span class="n">yhats</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">y_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ytest</span><span class="p">)</span>
+        <span class="n">TSS</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">ytest</span><span class="o">-</span><span class="n">y_mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">r2cv</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="p">(</span><span class="n">PRESS</span><span class="o">/</span><span class="n">TSS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r2cv</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

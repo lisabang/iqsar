@@ -1,0 +1,406 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.GA_nopb &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.GA_nopb</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">itert</span>
+<span class="kn">import</span> <span class="nn">copy</span> <span class="kn">as</span> <span class="nn">cp</span>
+<span class="kn">from</span> <span class="nn">deap</span> <span class="kn">import</span> <span class="n">creator</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">tools</span><span class="p">,</span> <span class="n">algorithms</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">mlr3</span> <span class="kn">as</span> <span class="nn">m</span>
+
+<span class="k">def</span> <span class="nf">hash_ind_list</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+<div class="viewcode-block" id="hash_ind_list"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.hash_ind_list">[docs]</a>    <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+<span class="n">randomnum</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+<span class="c">#arguments:  ngen, basetable, y, popsize, indsize, crossoverrate, #mutprob, evaluation function, selection function</span>
+<span class="n">toolbox</span><span class="o">=</span><span class="n">base</span><span class="o">.</span><span class="n">Toolbox</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">GAdescsel</span><span class="p">():</span>
+<div class="viewcode-block" id="GAdescsel"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">basetable</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">ngen</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">popsize</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">indsize</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">cx</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">mut</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="s">&quot;12345&quot;</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">deap</span> <span class="kn">import</span> <span class="n">creator</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">tools</span><span class="p">,</span> <span class="n">algorithms</span>
+        <span class="n">creator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&quot;Fitness&quot;</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">Fitness</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,))</span>
+        
+        <span class="n">creator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&quot;Individual&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">creator</span><span class="o">.</span><span class="n">Fitness</span><span class="p">,</span> <span class="n">__hash__</span><span class="o">=</span><span class="n">hash_ind_list</span><span class="p">)</span>
+        <span class="n">creator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&quot;Population&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">creator</span><span class="o">.</span><span class="n">Fitness</span><span class="p">,</span> <span class="n">__hash__</span><span class="o">=</span><span class="n">hash_ind_list</span><span class="p">)</span>
+        <span class="c">#toolbox=base.Toolbox() </span>
+        <span class="k">global</span> <span class="n">toolbox</span>
+        <span class="c">#global evalq2loo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="o">=</span><span class="n">basetable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">=</span><span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngen</span><span class="o">=</span><span class="n">ngen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="o">=</span><span class="n">popsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indsize</span><span class="o">=</span><span class="n">indsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="o">=</span><span class="n">cx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mut</span><span class="o">=</span><span class="n">mut</span>
+    <span class="k">def</span> <span class="nf">ct_calls</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<div class="viewcode-block" id="GAdescsel.ct_calls"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.ct_calls">[docs]</a>        <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">decor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">decor</span><span class="o">.</span><span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">decor</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">decor</span>
+    <span class="k">def</span> <span class="nf">mkeindrand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">desc_in_ind</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span><span class="c">#,datatable):</span></div>
+<div class="viewcode-block" id="GAdescsel.mkeindrand"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.mkeindrand">[docs]</a>        <span class="kn">import</span> <span class="nn">random</span>
+        <span class="k">while</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="p">))</span> <span class="o">!=</span><span class="s">&quot;&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;The type of descriptor table should be a Pandas dataframe.&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">type</span><span class="p">(</span><span class="n">desc_in_ind</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span> 
+                <span class="k">print</span> <span class="s">&quot;converting non-int to int&quot;</span>
+                <span class="n">desc_in_ind</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">desc_in_ind</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;The number of descriptors per individual should be of type int&quot;</span><span class="p">)</span>  
+        <span class="n">smple</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span><span class="n">desc_in_ind</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">smple</span>
+    <span class="nd">@ct_calls</span></div>
+    <span class="k">def</span> <span class="nf">mkeindseed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">desc_in_ind</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<div class="viewcode-block" id="GAdescsel.mkeindseed"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.mkeindseed">[docs]</a>        <span class="kn">import</span> <span class="nn">random</span>
+        <span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">RandomState</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkeindseed</span><span class="o">.</span><span class="n">count</span><span class="o">&lt;=</span><span class="mi">100</span><span class="p">:</span>
+            <span class="n">prng</span><span class="o">=</span><span class="n">RandomState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">mkeindseed</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkeindseed</span><span class="o">.</span><span class="n">count</span><span class="o">&gt;</span><span class="mi">100</span><span class="p">:</span>
+            <span class="n">prng</span><span class="o">=</span><span class="n">RandomState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mkeindseed</span><span class="o">.</span><span class="n">count</span><span class="o">%</span><span class="mi">100</span><span class="p">))</span>
+        <span class="n">smple</span><span class="o">=</span><span class="n">prng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="n">desc_in_ind</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">smple</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mutaRan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.mutaRan"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.mutaRan">[docs]</a>   <span class="c"># mutpool=[str(i) for i in ndesc.index if i not in ind]</span>
+        <span class="k">for</span> <span class="n">descriptor</span> <span class="ow">in</span> <span class="n">ind</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mut</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ind</span><span class="p">]</span>
+                <span class="n">ind</span><span class="p">[</span><span class="n">ind</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)]</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ind</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">evalr2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evalr2"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evalr2">[docs]</a>        <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">mlr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+    <span class="k">def</span> <span class="nf">evalr2adj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evalr2adj"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evalr2adj">[docs]</a>        <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">mlr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+    <span class="k">def</span> <span class="nf">evalq2loo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evalq2loo"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evalq2loo">[docs]</a>        
+        <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">q2loo_mlr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+
+    <span class="k">def</span> <span class="nf">evalq2lmo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evalq2lmo"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evalq2lmo">[docs]</a>        <span class="k">def</span> <span class="nf">factors</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>    
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">reduce</span><span class="p">(</span><span class="nb">list</span><span class="o">.</span><span class="n">__add__</span><span class="p">,</span> 
+                <span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="o">//</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="o">%</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))))[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c">#import mlr3</span>
+<span class="c">#        print self.basetable[ind][1]</span>
+        <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">q2lmo_mlr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">kfolds</span><span class="o">=</span><span class="n">factors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">))),</span>
+    <span class="k">def</span> <span class="nf">printq2fitness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pop</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.printq2fitness"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.printq2fitness">[docs]</a>        <span class="n">q2s</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">pop</span><span class="p">:</span>
+            <span class="n">q2s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">IQSAR</span><span class="o">.</span><span class="n">mlr3</span><span class="o">.</span><span class="n">q2loo_mlr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">q2s</span>  
+    <span class="k">def</span> <span class="nf">evolveparallel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evolveparallel"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evolveparallel">[docs]</a>        <span class="kn">from</span> <span class="nn">scoop</span> <span class="kn">import</span> <span class="n">futures</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;genind&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkeind</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">indsize</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initIterate</span><span class="p">,</span> <span class="n">creator</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">genind</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;population&quot;</span><span class="p">,</span><span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">)</span>
+
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalr2</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">cxOnePoint</span><span class="p">)</span> <span class="c">#Uniform, indpb=0.5)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mutate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutaRan</span><span class="p">)</span><span class="c">#, indpb=self.mut)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selBest</span><span class="p">)</span>
+        <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">()</span>
+        
+        <span class="c">#print population</span>
+        <span class="n">fits</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">fit</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fits</span><span class="p">,</span><span class="n">population</span><span class="p">):</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">fit</span>
+            <span class="c">#print fit, ind</span>
+            <span class="c">#print fit</span>
+        <span class="c">#offspring=algorithms.varOr(population, toolbox, lambda_=100, cxpb=.5, mutpb=.05)    </span>
+        <span class="c">#print toolbox.map(toolbox.evaluate, offspring)</span>
+        
+        <span class="n">avgfitnesses</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngen</span><span class="p">):</span>
+            
+            <span class="n">offspring</span><span class="o">=</span><span class="n">algorithms</span><span class="o">.</span><span class="n">varOr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">,</span> <span class="n">cxpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="n">mutpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut</span><span class="p">)</span>   
+            <span class="c">#print &quot;offspring&quot;,offspring</span>
+            <span class="n">fits</span><span class="o">=</span><span class="n">futures</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">offspring</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fit</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fits</span><span class="p">,</span><span class="n">population</span><span class="p">):</span>
+                <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">fit</span>
+            
+<span class="c">#            for ind in offspring:</span>
+<span class="c">#                ind.fitness.values=toolbox.evaluate(ind)</span>
+
+
+            
+            <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">itert</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">offspring</span><span class="o">+</span><span class="n">population</span><span class="p">))],</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">popfits</span> <span class="o">=</span> <span class="n">futures</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+            <span class="n">avgfitnesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">popfits</span><span class="p">))</span>
+        <span class="c">#plot(len(avgfitnesses), list(avgfitnesses))</span>
+        <span class="c">#print avgfitnesses</span>
+        
+    <span class="k">def</span> <span class="nf">evolvepara</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evolvepara"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evolvepara">[docs]</a>        <span class="c">#import multiprocessing</span>
+        <span class="c">#pool = multiprocessing.Pool()</span>
+        <span class="c">#toolbox.register(&quot;map&quot;, pool.map)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;genind&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkeind</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">indsize</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initIterate</span><span class="p">,</span> <span class="n">creator</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">genind</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;population&quot;</span><span class="p">,</span><span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">)</span>
+
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalr2</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">cxOnePoint</span><span class="p">)</span> <span class="c">#Uniform, indpb=0.5)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mutate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutaRan</span><span class="p">)</span><span class="c">#, indpb=self.mut)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selBest</span><span class="p">)</span>
+        <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">()</span>
+        <span class="c">#print population</span>
+        <span class="n">fits</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">fit</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fits</span><span class="p">,</span><span class="n">population</span><span class="p">):</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">fit</span>
+            <span class="c">#print fit, ind</span>
+            <span class="c">#print fit</span>
+        <span class="c">#offspring=algorithms.varOr(population, toolbox, lambda_=100, cxpb=.5, mutpb=.05)    </span>
+        <span class="c">#print toolbox.map(toolbox.evaluate, offspring)</span>
+        
+        <span class="n">avgfitnesses</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngen</span><span class="p">):</span>
+            
+            <span class="n">offspring</span><span class="o">=</span><span class="n">algorithms</span><span class="o">.</span><span class="n">varOr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">,</span> <span class="n">cxpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="n">mutpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut</span><span class="p">)</span>   
+            <span class="c">#print &quot;offspring&quot;,offspring</span>
+            <span class="c">#fits=toolbox.map(toolbox.evaluate, offspring)</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">offspring</span><span class="p">:</span>
+                <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+            <span class="c">#for fit, ind in zip(fits,population):</span>
+            <span class="c">#    ind.fitness.values=fit</span>
+            
+            <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">itert</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">offspring</span><span class="o">+</span><span class="n">population</span><span class="p">))],</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">popfits</span> <span class="o">=</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+            <span class="n">avgfitnesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">popfits</span><span class="p">))</span>
+        <span class="c">#plot(len(avgfitnesses), list(avgfitnesses))</span>
+<span class="c">#        print avgfitnesses</span>
+        <span class="k">print</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">population</span>
+
+
+    <span class="k">def</span> <span class="nf">evolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">evalfunc</span><span class="o">=</span><span class="s">&quot;q2loo&quot;</span><span class="p">,</span><span class="n">startpop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evolve"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evolve">[docs]</a>     
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;genind&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkeindseed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indsize</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initIterate</span><span class="p">,</span> <span class="n">creator</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">genind</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;population&quot;</span><span class="p">,</span><span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">evalfunc</span><span class="o">==</span><span class="s">&quot;q2loo&quot;</span><span class="p">:</span>
+            <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalq2loo</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">evalfunc</span><span class="o">==</span><span class="s">&quot;q2lmo&quot;</span><span class="p">:</span>
+            <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalq2lmo</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">evalfunc</span><span class="o">==</span><span class="s">&quot;r2&quot;</span><span class="p">:</span>
+            <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalr2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">evalfunc</span><span class="o">==</span><span class="s">&quot;r2adj&quot;</span><span class="p">:</span>
+            <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalr2adj</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;not a valid evaluation function specified; use evalr2adj, evalr2, q2lmo, or q2loo&quot;</span><span class="p">)</span>
+        
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">cxOnePoint</span><span class="p">)</span> <span class="c">#Uniform, indpb=0.5)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mutate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutaRan</span><span class="p">)</span><span class="c">#, indpb=self.mut)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selBest</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">startpop</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+             <span class="n">origpop</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="n">origpop</span><span class="o">=</span><span class="n">startpop</span>
+        <span class="c">#self.mkeindseed.count=0</span>
+        <span class="n">population</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">origpop</span><span class="p">)</span>
+        <span class="n">fits</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fit</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fits</span><span class="p">,</span><span class="n">population</span><span class="p">):</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">fit</span>
+        
+        <span class="n">avgfitnesses</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">popfits</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngen</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">offspring</span><span class="o">=</span><span class="n">algorithms</span><span class="o">.</span><span class="n">varOr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">,</span> <span class="n">cxpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="n">mutpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut</span><span class="p">)</span>   
+                <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">offspring</span><span class="p">:</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">itert</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">offspring</span><span class="o">+</span><span class="n">population</span><span class="p">))],</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+                <span class="n">popfits</span> <span class="o">=</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">KeyboardInterrupt</span><span class="p">,</span> <span class="ne">SystemExit</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">origpop</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">origpop</span><span class="p">),</span> <span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">origpop</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">origpop</span><span class="p">),</span> <span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">origpop</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">origpop</span><span class="p">),</span> <span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)]</span>
+        <span class="k">print</span> <span class="s">&quot;Done!&quot;</span>
+            
+    <span class="k">def</span> <span class="nf">evolverf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">evalfunc</span><span class="o">=</span><span class="s">&quot;q2loo&quot;</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evolverf"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evolverf">[docs]</a>        <span class="c">#toolbox.register(&quot;map&quot;, pool.map)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;genind&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkeindrf</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">indsize</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initIterate</span><span class="p">,</span> <span class="n">creator</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">genind</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;population&quot;</span><span class="p">,</span><span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initIterate</span><span class="p">,</span> <span class="n">creator</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">genind</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;population&quot;</span><span class="p">,</span><span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">evalfunc</span><span class="o">==</span><span class="s">&quot;q2loo&quot;</span><span class="p">:</span>
+            <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalq2loo</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">evalfunc</span><span class="o">==</span><span class="s">&quot;r2&quot;</span><span class="p">:</span>
+            <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalr2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">evalfunc</span><span class="o">==</span><span class="s">&quot;r2adj&quot;</span><span class="p">:</span>
+            <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalr2adj</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;not a valid evaluation function specified; use evalr2adj, evalr2, or q2loo&quot;</span><span class="p">)</span>
+        
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">cxOnePoint</span><span class="p">)</span> <span class="c">#Uniform, indpb=0.5)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mutate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutaRan</span><span class="p">)</span><span class="c">#, indpb=self.mut)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selBest</span><span class="p">)</span>
+        <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">()</span>
+        <span class="c">#print population</span>
+        <span class="n">fits</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">fit</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fits</span><span class="p">,</span><span class="n">population</span><span class="p">):</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">fit</span>
+        
+        <span class="n">avgfitnesses</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngen</span><span class="p">):</span>
+            
+            <span class="n">offspring</span><span class="o">=</span><span class="n">algorithms</span><span class="o">.</span><span class="n">varOr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">,</span> <span class="n">cxpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="n">mutpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut</span><span class="p">)</span>   
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">offspring</span><span class="p">:</span>
+                <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+            
+            <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">itert</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">offspring</span><span class="o">+</span><span class="n">population</span><span class="p">))],</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">popfits</span> <span class="o">=</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+            <span class="n">avgfitnesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">popfits</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">population</span>
+            
+    <span class="k">def</span> <span class="nf">evolverecur</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rf</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">pops</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.evolverecur"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.evolverecur">[docs]</a>        <span class="n">totalpop</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">origpops</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">if</span> <span class="n">rf</span><span class="o">==</span><span class="bp">False</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pops</span><span class="p">):</span>
+            <span class="c">#feedpop[n]=self.evolve()</span>
+                <span class="n">subpop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evolve</span><span class="p">()</span>
+                <span class="n">origpop</span><span class="o">=</span><span class="n">subpop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">origpops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">origpop</span><span class="p">)</span>
+                <span class="n">meh</span><span class="o">=</span><span class="n">subpop</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">meh</span><span class="p">:</span>
+                    <span class="n">totalpop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rf</span><span class="o">==</span><span class="bp">True</span><span class="p">:</span>
+            
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pops</span><span class="p">):</span>
+            <span class="c">#feedpop[n]=self.evolve()</span>
+                <span class="n">meh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evolverf</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">meh</span><span class="p">:</span>
+                    <span class="n">totalpop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Random Forest (rf) arg must be a boolean, True or False&quot;</span><span class="p">)</span>
+                
+        <span class="c">#print totalpop</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalq2loo</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selBest</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">totalpop</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+        <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">itert</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">totalpop</span><span class="p">))],</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">origpops</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)]</span>
+    <span class="c">#zip(fits,population)</span>
+    <span class="k">def</span> <span class="nf">debug_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="GAdescsel.debug_eval"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.GA_nopb.GAdescsel.debug_eval">[docs]</a>        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;evaluate&quot;</span><span class="p">,</span> <span class="n">evalr2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basetable</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">cxOnePoint</span><span class="p">)</span> <span class="c">#Uniform, indpb=0.5)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;mutate&quot;</span><span class="p">,</span> <span class="n">mutRan</span><span class="p">,</span> <span class="n">indpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut</span><span class="p">)</span>
+        <span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selBest</span><span class="p">)</span>
+        <span class="n">population</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">()</span>
+        <span class="n">fits</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">fit</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fits</span><span class="p">,</span><span class="n">population</span><span class="p">):</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">fit</span>
+        <span class="n">offspring</span><span class="o">=</span><span class="n">algorithms</span><span class="o">.</span><span class="n">varOr</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cxpb</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">mutpb</span><span class="o">=.</span><span class="mo">05</span><span class="p">)</span>   
+            <span class="c">#print &quot;offspring&quot;,offspring</span>
+            <span class="c">#fits=toolbox.map(toolbox.evaluate, offspring)</span>
+        <span class="k">print</span> <span class="n">offspring</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">offspring</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+            <span class="k">print</span> <span class="n">ind</span>
+            <span class="k">print</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span>
+            <span class="c">#for fit, ind in zip(fits,population):</span>
+            <span class="c">#    ind.fitness.values=fit</span>
+        
+
+  <span class="c">#  def by_r2adj():</span>
+  <span class="c">#  def by_q2loo():</span>
+
+<span class="c">#output: end population, descriptor frequency stats, average fitnes</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

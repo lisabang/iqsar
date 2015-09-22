@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.qdb &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.qdb</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">as</span> <span class="nn">ET</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="sd">&#39;&#39;&#39;Contains a qdbrep class.  Declare using IQSAR.qdb.qdbrep(/absolute/path/to/unzipped/qsar-db/folder/) and perform getdescs, getyvals, getinchis, getcas functions on that object.&#39;&#39;&#39;</span>
+<div class="viewcode-block" id="qdbrep"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.qdb.qdbrep">[docs]</a><span class="k">class</span> <span class="nc">qdbrep</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">dir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="nb">dir</span>
+    <span class="k">def</span> <span class="nf">_getsub</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">name</span><span class="p">))]</span>
+<div class="viewcode-block" id="qdbrep.getdescs"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.qdb.qdbrep.getdescs">[docs]</a>    <span class="k">def</span> <span class="nf">getdescs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">&quot;descriptors&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getsub</span><span class="p">():</span>
+            <span class="n">descfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">+</span><span class="s">&quot;descriptors/&quot;</span>
+            <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">descfolder</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">dirs</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dfs</span><span class="o">=</span><span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">directorynum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirs</span><span class="p">)):</span>
+                        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">descfolder</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">dirs</span><span class="p">[</span><span class="n">directorynum</span><span class="p">])</span><span class="o">+</span><span class="s">&quot;/values&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;No descriptors folder present in this particular QSAR-DB!&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="qdbrep.getyvals"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.qdb.qdbrep.getyvals">[docs]</a>    <span class="k">def</span> <span class="nf">getyvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">&quot;properties&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getsub</span><span class="p">():</span>
+            <span class="n">propfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">+</span><span class="s">&quot;properties/&quot;</span>
+            <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">propfolder</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">dirs</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">propfolder</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">dirs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&quot;/values&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;No properties folder present in this particular QSAR-DB!&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="qdbrep.getcompounds"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.qdb.qdbrep.getcompounds">[docs]</a>    <span class="k">def</span> <span class="nf">getcompounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">&quot;compounds&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getsub</span><span class="p">():</span>
+            <span class="n">xmlfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">+</span><span class="s">&quot;compounds/compounds.xml&quot;</span>
+            
+            <span class="k">if</span> <span class="n">xmlfile</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.xml&quot;</span><span class="p">):</span>
+                <span class="n">tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xmlfile</span><span class="p">)</span>
+                <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+                <span class="n">childs</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root</span><span class="p">:</span>
+                    <span class="n">tindex</span><span class="o">=</span><span class="p">[</span><span class="n">ele</span><span class="o">.</span><span class="n">tag</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">child</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tindex</span><span class="p">):</span>
+                        <span class="n">junk</span><span class="p">,</span><span class="n">notjunk</span><span class="o">=</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;}&quot;</span><span class="p">)</span>
+                        <span class="n">tindex</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">notjunk</span>
+                    <span class="n">childinfo</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="n">ele</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">child</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">tindex</span><span class="p">)</span><span class="c">#, index=pdin)</span>
+                    <span class="n">childs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">childinfo</span><span class="p">)</span>
+                <span class="n">mas</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">childs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">mas2</span><span class="o">=</span><span class="n">mas</span><span class="o">.</span><span class="n">T</span>
+                <span class="k">return</span> <span class="n">mas2</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="s">&quot;Id&quot;</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Input file must be of type XML!&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="qdbrep.getmol"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.qdb.qdbrep.getmol">[docs]</a>    <span class="k">def</span> <span class="nf">getmol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">folderpath</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;This command automatically downloads .mol files from the NIST websites to folderpath (must be written as string, i.e. /absolute/path/to/folder/).  for this to work, the original QSAR-DB must have  inchi files. this relies on the getinchi() method of this class.  This may not work if the inchi is ambiguous and there is more than one NIST mol entry.  Check the folder and the print output to check.&#39;&#39;&#39;</span>
+        <span class="n">nisturl</span><span class="o">=</span><span class="s">&quot;http://webbook.nist.gov/cgi/cbook.cgi?InChIFile=&quot;</span>
+        <span class="n">inchiseries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getcompounds</span><span class="p">()[</span><span class="s">&quot;InChI&quot;</span><span class="p">]</span>
+        <span class="kn">import</span> <span class="nn">math</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">folderpath</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inchiseries</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">inchiseries</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">==</span><span class="nb">float</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;.mol not downloaded&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">urllib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">nisturl</span><span class="o">+</span><span class="n">inchiseries</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">folderpath</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;.mol&quot;</span><span class="p">)</span>
+                
+          <span class="c">#  for inchi in inchilist:</span>
+          <span class="c">#      #print nisturl+inchi</span>
+          <span class="c">#      urllib.urlretrieve(nisturl+inchi, folderpath+str(inchilist.index(inchi))+&quot;.mol&quot;)</span>
+          <span class="c">#      print &quot;saved &quot;+str(folderpath)+&quot;1~&quot;+str(inchilist.index(inchi))+&quot;.mol&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Type of folderpath must be a string!&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

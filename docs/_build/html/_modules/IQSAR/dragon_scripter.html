@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.dragon_scripter &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.dragon_scripter</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="c">#import module_locator</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">as</span> <span class="nn">ET</span>
+<span class="kn">import</span> <span class="nn">dragonss</span>
+
+<div class="viewcode-block" id="MolFilePath"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.dragon_scripter.MolFilePath">[docs]</a><span class="k">class</span> <span class="nc">MolFilePath</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;helper function to make a custom .drs file for dragon 6 or more recent.&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">molfol</span><span class="p">,</span><span class="n">datapath</span><span class="p">,</span><span class="n">scriptpath</span><span class="p">):</span>
+        <span class="c">#my_path=module_locator.module_path()</span>
+        <span class="c">#tree=ET.parse(dss)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">dragonss</span><span class="o">.</span><span class="n">samp</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">=</span><span class="n">root</span>
+        <span class="c">#self.root=tree.getroot()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">molfol</span><span class="o">=</span><span class="n">molfol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datapath</span><span class="o">=</span><span class="n">datapath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scriptpath</span><span class="o">=</span><span class="n">scriptpath</span>
+<div class="viewcode-block" id="MolFilePath.defaultoptions"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.dragon_scripter.MolFilePath.defaultoptions">[docs]</a>    <span class="k">def</span> <span class="nf">defaultoptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveOnlyData&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveLabelsOnSeparateFile&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveFormatBlock&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;%b - %n.txt&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveFormatSubBlock&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;%b-</span><span class="si">%s</span><span class="s"> - %n - %m.txt&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeMisVal&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeAllMisVal&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeConst&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeNearConst&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeStdDev&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveStdDevThreshold&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;0.0001&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeCorrelated&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveCorrThreshold&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;.99&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExclusionOptionsToVariables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeMisMolecules&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;OPTIONS/SaveExcludeRejectedMolecules&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="s">&quot;false&quot;</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">_getmols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">folderaddress</span><span class="p">,</span> <span class="n">m_ext</span><span class="o">=</span><span class="s">&quot;hin&quot;</span><span class="p">):</span>
+        <span class="n">files</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folderaddress</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">m_ext</span><span class="p">)):</span>
+                <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folderaddress</span><span class="o">+</span><span class="nb">file</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MolFilePath.entermolfolder"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.dragon_scripter.MolFilePath.entermolfolder">[docs]</a>    <span class="k">def</span> <span class="nf">entermolfolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">molext</span><span class="o">=</span><span class="s">&quot;hin&quot;</span><span class="p">):</span>
+        <span class="n">thist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;MOLFILES/molInput&quot;</span><span class="p">)</span>
+        <span class="c">#self.root.remove()</span>
+        <span class="n">listofmols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getmols</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molfol</span><span class="p">,</span> <span class="n">m_ext</span><span class="o">=</span><span class="n">molext</span><span class="p">)</span>
+        <span class="c">#print listofmols</span>
+        
+        <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">listofmols</span><span class="p">:</span>
+            <span class="c">#print mol</span>
+            <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">thist</span><span class="p">,</span><span class="s">&quot;molFile&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;value&#39;</span><span class="p">,</span><span class="n">mol</span><span class="p">)</span>               
+<span class="c">#        for mol in thist:</span>
+        
+            
+            <span class="c">#print mol</span>
+                <span class="c">#print molfile.attrib</span>
+        </div>
+<div class="viewcode-block" id="MolFilePath.enterblocks"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.dragon_scripter.MolFilePath.enterblocks">[docs]</a>    <span class="k">def</span> <span class="nf">enterblocks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">listofblocks</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">listofblocks</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">blk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&quot;block&quot;</span><span class="p">):</span>
+            <span class="c">#print blk.attrib</span>
+                <span class="n">blk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;SelectAll&#39;</span><span class="p">,</span><span class="s">&quot;true&quot;</span><span class="p">)</span>
+            <span class="c">#print blk.attrib</span>
+
+ <span class="c">#   def enterweights(weightslist)</span>
+ <span class="c">#       for e in root.iter(&quot;weight&quot;):</span>
+ <span class="c">#           print e.attrib</span></div>
+    <span class="k">def</span> <span class="nf">_puttodaysdate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    
+        <span class="k">for</span> <span class="n">trait</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&quot;DRAGON&quot;</span><span class="p">):</span>
+            <span class="c">#print trait.attrib</span>
+            <span class="n">trait</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;generation_date&quot;</span><span class="p">,</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%Y/%m/</span><span class="si">%d</span><span class="s">&quot;</span><span class="p">))</span>
+        <span class="c">#print trait.attrib</span>
+                
+<div class="viewcode-block" id="MolFilePath.changesavefilepath"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.dragon_scripter.MolFilePath.changesavefilepath">[docs]</a>    <span class="k">def</span> <span class="nf">changesavefilepath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datapath</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">savefile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&quot;SaveFilePath&quot;</span><span class="p">):</span>
+                <span class="n">savefile</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">datapath</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Save path must be a string&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="MolFilePath.write_defaultdrs"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.dragon_scripter.MolFilePath.write_defaultdrs">[docs]</a>    <span class="k">def</span> <span class="nf">write_defaultdrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ext</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultoptions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entermolfolder</span><span class="p">(</span><span class="n">molext</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enterblocks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_puttodaysdate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changesavefilepath</span><span class="p">()</span>
+        <span class="n">tree</span><span class="o">=</span><span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scriptpath</span><span class="p">)</span>
+        </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

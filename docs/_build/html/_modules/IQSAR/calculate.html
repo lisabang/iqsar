@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.calculate &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.calculate</h1><div class="highlight"><pre>
+<span class="c">#def r2(x,y):</span>
+<span class="c">#    &quot;&quot;&quot;gets the r2 value for array x and array y&quot;&quot;&quot;</span>
+<span class="c">#    y_mean = sum(x)/float(len(y))</span>
+<span class="c">#    ss_tot = sum((yi-y_mean)**2 for yi in y)</span>
+<span class="c">#    ss_err = sum((yi-xi)**2 for yi,xi in zip(y,x))</span>
+<span class="c">#    r2 = 1 - (ss_err/ss_tot)</span>
+<span class="c">#    return r2</span>
+
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="kn">as</span> <span class="nn">scst</span>
+
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">cross_validation</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<div class="viewcode-block" id="all_indices"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.all_indices">[docs]</a><span class="k">def</span> <span class="nf">all_indices</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">qlist</span><span class="p">):</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">qlist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">indices</span>
+</div>
+<div class="viewcode-block" id="r2"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.r2">[docs]</a><span class="k">def</span> <span class="nf">r2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return R^2 where x and y are array-like.&quot;&quot;&quot;</span>
+
+    <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">,</span> <span class="n">r_value</span><span class="p">,</span> <span class="n">p_value</span><span class="p">,</span> <span class="n">std_err</span> <span class="o">=</span> <span class="n">scst</span><span class="o">.</span><span class="n">linregress</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r_value</span><span class="o">**</span><span class="mi">2</span>
+
+
+<span class="c">#DO NOT DELETE CODE IN THIS CELL, THIS IS NEEDED TO CALCULATE Q2LOO!!</span></div>
+<div class="viewcode-block" id="fit"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.fit">[docs]</a><span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;when inputting fit (x,y), returns tuple (A, b) where y= b * x + A&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="n">Xs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">Xs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">Xs</span><span class="p">)</span>
+    <span class="n">m_X</span> <span class="o">=</span> <span class="n">mean</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">m_Y</span> <span class="o">=</span> <span class="n">mean</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="n">Xs</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;this is used to calculate the standard deviation&#39;&#39;&#39;</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Xs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">((</span><span class="nb">pow</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">m</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">Xs</span><span class="p">))</span> <span class="o">/</span> <span class="n">normalizer</span><span class="p">)</span>
+    <span class="c"># assert np.round(Series(X).std(), 6) == np.round(std(X, m_X), 6)</span>
+
+    <span class="k">def</span> <span class="nf">pearson_r</span><span class="p">(</span><span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;this calculates the pearson R of multiple xs and ys.&#39;&#39;&#39;</span>
+        <span class="n">sum_xy</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">sum_sq_v_x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">sum_sq_v_y</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">):</span>
+            <span class="n">var_x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">m_X</span>
+            <span class="n">var_y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">m_Y</span>
+            <span class="n">sum_xy</span> <span class="o">+=</span> <span class="n">var_x</span> <span class="o">*</span> <span class="n">var_y</span>
+            <span class="n">sum_sq_v_x</span> <span class="o">+=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">var_x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">sum_sq_v_y</span> <span class="o">+=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">var_y</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sum_xy</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sum_sq_v_x</span> <span class="o">*</span> <span class="n">sum_sq_v_y</span><span class="p">)</span>
+    <span class="c"># assert np.round(Series(X).corr(Series(Y)), 6) == np.round(pearson_r(X, Y), 6)</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">pearson_r</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+    <span class="c">#b = r * (std(Y, m_Y) / std(X, m_X))</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">m_Y</span> <span class="o">-</span> <span class="n">b</span> <span class="o">*</span> <span class="n">m_X</span>
+
+    <span class="k">def</span> <span class="nf">line</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">b</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">A</span>
+    <span class="c">#return line</span>
+    <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span>
+</div>
+<div class="viewcode-block" id="kfold"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.kfold">[docs]</a><span class="k">def</span> <span class="nf">kfold</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span><span class="n">yi</span><span class="p">,</span><span class="n">nfolds</span><span class="p">):</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">xi</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">yi</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">kf</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="o">.</span><span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">n_folds</span><span class="o">=</span><span class="n">nfolds</span><span class="p">)</span><span class="c">#indices=None, shuffle=False, random_state=None)</span>
+    <span class="n">y_hats</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">train_index</span><span class="p">,</span> <span class="n">test_index</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+        <span class="n">x_train</span><span class="p">,</span> <span class="n">x_test</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">train_index</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+        <span class="n">y_train</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="n">train_index</span><span class="p">]</span>
+
+        <span class="n">x_train</span><span class="o">=</span><span class="n">x_train</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_train</span><span class="p">))]</span>
+        <span class="n">y_train</span><span class="o">=</span><span class="n">y_train</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_train</span><span class="p">))]</span>
+        <span class="c">#poly_order = 1</span>
+        <span class="c">#ab = np.polyfit(x_train, y_train, poly_order)</span>
+        <span class="n">ab</span><span class="o">=</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">y_hats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">ab</span><span class="p">,</span> <span class="n">x_test</span><span class="p">))</span>
+
+    <span class="n">cleanyhats</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">yhat</span> <span class="ow">in</span> <span class="n">y_hats</span><span class="p">:</span>
+        <span class="n">cleanyhats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">yhat</span><span class="p">))</span>
+    <span class="n">stack</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cleanyhats</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stack</span></div>
+<div class="viewcode-block" id="q2loo_lr"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.q2loo_lr">[docs]</a><span class="k">def</span> <span class="nf">q2loo_lr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;calculates q2loo of a linear regression of x and y where both x and y are 1-d&#39;&#39;&#39;</span>
+    <span class="n">yhats</span><span class="o">=</span><span class="n">kfold</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="n">PRESS</span><span class="o">=</span><span class="nb">sum</span><span class="p">((</span><span class="n">y</span><span class="o">-</span><span class="n">yhats</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">TSS</span><span class="o">=</span><span class="nb">sum</span><span class="p">((</span><span class="n">y</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">r2cv</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="p">(</span><span class="n">PRESS</span><span class="o">/</span><span class="n">TSS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r2cv</span>
+    </div>
+<div class="viewcode-block" id="stentropy"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.stentropy">[docs]</a><span class="k">def</span> <span class="nf">stentropy</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">lv</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">Hi</span><span class="o">=</span><span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">lv</span><span class="p">):</span>
+        <span class="c">#Hi=Hi+float(lv.count(i))/float(len(lv))</span>
+        
+        <span class="n">Hi</span><span class="o">=</span><span class="n">Hi</span><span class="o">+</span><span class="nb">float</span><span class="p">(</span><span class="n">lv</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lv</span><span class="p">)))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lv</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lv</span><span class="p">))))</span>
+    <span class="n">Hi</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">Hi</span><span class="p">)</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lv</span><span class="p">)),</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">Hi</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="summarizedesc"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.summarizedesc">[docs]</a><span class="k">def</span> <span class="nf">summarizedesc</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;this will take 1-5 minutes depencing on dataframe size&#39;&#39;&#39;</span>
+    <span class="n">asdf</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;kurtosis&quot;</span><span class="p">,</span><span class="s">&quot;entropy&quot;</span><span class="p">,</span> <span class="s">&quot;r2&quot;</span><span class="p">,</span><span class="s">&quot;q2&quot;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">kurtosisadd</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">scst</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">(</span><span class="n">dataframe</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">]]</span>
+    <span class="n">r2add</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">q2add</span><span class="o">=</span><span class="p">[]</span> 
+    <span class="n">entropyadd</span><span class="o">=</span><span class="p">[</span><span class="n">stentropy</span><span class="p">(</span><span class="n">dataframe</span><span class="p">[</span><span class="n">a</span><span class="p">])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">dataframe</span><span class="p">:</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+        <span class="n">r2add</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">))</span>
+        <span class="n">q2add</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q2loo_lr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">))</span>
+        <span class="c">#entropyadd.append(float(stentropy(x)))</span>
+        
+    <span class="n">asdf</span><span class="p">[</span><span class="s">&quot;kurtosis&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">kurtosisadd</span>
+    <span class="n">asdf</span><span class="p">[</span><span class="s">&quot;entropy&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">entropyadd</span>
+    <span class="n">asdf</span><span class="p">[</span><span class="s">&quot;r2&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">r2add</span>
+    <span class="n">asdf</span><span class="p">[</span><span class="s">&quot;q2&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">q2add</span>
+
+    <span class="k">return</span> <span class="n">asdf</span></div>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<div class="viewcode-block" id="expl_graph"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.expl_graph">[docs]</a><span class="k">def</span> <span class="nf">expl_graph</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+<span class="c"># Fit the model to the sample with a straight line model</span>
+    <span class="n">poly_order</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">ab</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">poly_order</span><span class="p">)</span>
+    <span class="c"># Evalute the estimated model</span>
+    <span class="n">y_fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">ab</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; vs. &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_fit</span><span class="p">);</span>
+    <span class="c">#ax.figtext</span>
+    <span class="c">#ax.title(str(x.name)+&quot; vs. &quot;+str(y.name))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">&quot;r2: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">r2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">))</span></div>
+<div class="viewcode-block" id="scmat"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.calculate.scmat">[docs]</a><span class="k">class</span> <span class="nc">scmat</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;this raises the IQSAR scatter matrix making option&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sodf</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sodf</span><span class="o">=</span><span class="n">sodf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">seldescs</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">SelectMultiple</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sodf</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Selected Descriptors:&#39;</span><span class="p">,)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">seldescs</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">chandler</span><span class="p">(</span><span class="n">val</span><span class="p">):</span> 
+            <span class="n">dfsels</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">sodf</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="p">)])</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">scatter_matrix</span><span class="p">(</span><span class="n">dfsels</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">diagonal</span><span class="o">=</span><span class="s">&#39;hist&#39;</span><span class="p">)</span>
+
+        
+
+        <span class="n">button</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">ButtonWidget</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Get scatter matrix&quot;</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">button</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">on_button_clicked</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">chandler</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">seldescs</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        
+        <span class="n">button</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">on_button_clicked</span><span class="p">)</span>
+   
+
+    
+   
+
+<span class="c">#seldescs.on_trait_change(chelseahandler, &#39;value&#39;)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

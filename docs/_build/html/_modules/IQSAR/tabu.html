@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IQSAR.tabu &mdash; IQSAR  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="IQSAR  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for IQSAR.tabu</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="kn">as</span> <span class="nn">scst</span>
+
+<div class="viewcode-block" id="lst"><a class="viewcode-back" href="../../IQSAR.html#IQSAR.tabu.lst">[docs]</a><span class="k">def</span> <span class="nf">lst</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This geneates a list of variables whose r2 and kurtosis values are as specified and are therefore not in the tabu list.  These variables should go into the genetic algorithm&quot;&quot;&quot;</span>
+    <span class="n">nontabulist</span><span class="o">=</span><span class="p">[]</span>
+    <span class="kn">import</span> <span class="nn">chemcraft2</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">dataframe</span><span class="p">:</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+        <span class="c">#print z</span>
+        <span class="c">#r2=float((scst.pearsonr(x,z)[0])**2)</span>
+        <span class="c">#print r2</span>
+        <span class="n">kurtosis</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">scst</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">r2</span><span class="o">=</span><span class="n">chemcraft2</span><span class="o">.</span><span class="n">calculate</span><span class="o">.</span><span class="n">r2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+        <span class="c">#r2=rsquared(x,z)</span>
+        <span class="c">#if r2&gt; .1:</span>
+        <span class="c">#     nontabudict[column]=r2</span>
+        <span class="k">if</span> <span class="n">kurtosis</span><span class="o">&lt;=</span><span class="n">kurtosisthreshold</span><span class="o">.</span><span class="n">value</span> <span class="ow">and</span> <span class="n">r2</span><span class="o">&gt;=</span><span class="n">r2threshold</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+              <span class="n">nontabulist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nontabulist</span>
+<span class="c">#print &quot;Non-tabudict size:&quot;</span>
+<span class="c">#print len(nontabudict)</span>
+<span class="c">#    q2=1-sum(np.square(z-(yexp-x[column])))/(sumoftotsquares)</span>
+<span class="c">#    print q2</span>
+    <span class="c">#1-((np.square(n-1))*(z-(x*m+c))/(numpy.square(n)(n*z.var())))</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
