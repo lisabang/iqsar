@@ -23,4 +23,4 @@ IQSAR is an ongoing project and I would appreciate any feedback.
 
 asterisk (*) indicates that these packages are included in anaconda.
 
-
+This project was developed at the ebio lab at SoongSil University under the guidance of Dr. Kwang-Hwi Cho.
