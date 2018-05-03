@@ -1,4 +1,4 @@
-
+import mlr3 as m
 import random
 import numpy as np
 import itertools as itert
@@ -10,7 +10,7 @@ import signal
 import time
 import multiprocessing
 import pandas as pd
-
+from numpy.random import RandomState
 
 #from https://code.google.com/p/corey-projects/source/browse/trunk/python2/progress_bar.py
 #class ProgressBar:
@@ -92,7 +92,6 @@ randomnum=np.random.uniform(1,100,1)
 toolbox=base.Toolbox()
 class GAdescsel():
     def __init__(self,basetable,y,ngen=1000, popsize=100, indsize=5, cx=.5, mut=.05, seed="12345"):
-        from deap import creator, base, tools, algorithms
         creator.create("Fitness", base.Fitness, weights=(1.0,))
         
         creator.create("Individual", list, fitness=creator.Fitness, __hash__=hash_ind_list)
@@ -118,7 +117,6 @@ class GAdescsel():
         decor.count = 0
         return decor
     def mkeindrand(self,desc_in_ind=5):#,datatable):
-        import random
         while str(type(self.basetable)) !="<class 'pandas.core.frame.DataFrame'>":
             raise TypeError("The type of descriptor table should be a Pandas dataframe.")
         while type(desc_in_ind) is not int:
@@ -132,8 +130,6 @@ class GAdescsel():
         return smple
     @ct_calls
     def mkeindseed(self,desc_in_ind=5):
-        import random
-        from numpy.random import RandomState
         if self.mkeindseed.count<=100:
             prng=RandomState(self.seed+self.mkeindseed.count)
         if self.mkeindseed.count>100:
@@ -176,15 +172,11 @@ class GAdescsel():
                 ind[ind.index(descriptor)]=random.choice(choices)
         return ind,
     def evalr2(self,ind):
-        import mlr3 as m
         return m.mlr(self.basetable[ind],self.y)[2].astype(float),
     def evalr2adj(self,ind):
-        import mlr3 as m
         return m.mlr(self.basetable[ind],self.y)[3].astype(float),
     def evalq2loo(self,ind):
-        #import mlr3
 #        print self.basetable[ind][1]
-        import mlr3 as m
         return m.q2loo_mlr(self.basetable[ind],self.y),
     def evalq2lmo(self,ind):
         def factors(n):    
@@ -192,7 +184,6 @@ class GAdescsel():
                 ([i, n//i] for i in range(1, int(n**0.5) + 1) if n % i == 0))))[1]
         #import mlr3
 #        print self.basetable[ind][1]
-        import mlr3 as m
         return m.q2lmo_mlr(self.basetable[ind],self.y, kfolds=factors(len(self.y))),
     def printq2fitness(self,pop):
         q2s=[]
