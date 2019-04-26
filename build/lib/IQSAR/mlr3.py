@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn import cross_validation
+from sklearn.model_selection import cross_validate
 def mlr(x_of_trainingset,y_actual):
     
     columnnames=list(x_of_trainingset.columns.values)

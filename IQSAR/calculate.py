@@ -8,7 +8,7 @@
 
 import scipy.stats as scst
 
-from sklearn import cross_validation
+from sklearn.model_selection import cross_validate
 import math
 import numpy as np
 import pandas as pd
