@@ -1,7 +1,7 @@
 IQSAR
 =====
 
-IQSAR is a project designed to enable chemoinformaticians to make reproducible QSARs purely in IPython or Python.  It is meant for use with the IPython notebook.  In order to run IQSAR, clone this git, change to the IQSAR directory, and do: 
+IQSAR is a project designed to enable chemoinformaticians to make reproducible QSARs purely in Jupyter or Python.  It is meant for use with the Jupyter notebook and currently only supports Python 2 but is being rewritten to support Python 3.  In order to run IQSAR, clone this git, change to the IQSAR directory, and do: 
 
 ```
 python setup.py install
